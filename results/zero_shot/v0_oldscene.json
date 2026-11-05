@@ -1,0 +1,218 @@
+{
+ "tasks": "pick,pad,tray",
+ "cams": "wrist",
+ "dry_run": false,
+ "episodes": 24,
+ "success_rate": 0.0,
+ "by": {
+  "tray": [
+   0,
+   7
+  ],
+  "foam_brick": [
+   0,
+   7
+  ],
+  "pad": [
+   0,
+   9
+  ],
+  "gelatin_box": [
+   0,
+   2
+  ],
+  "marker": [
+   0,
+   3
+  ],
+  "pick": [
+   0,
+   8
+  ],
+  "soup_can": [
+   0,
+   6
+  ],
+  "meat_can": [
+   0,
+   3
+  ],
+  "banana": [
+   0,
+   3
+  ]
+ },
+ "exec": 4,
+ "seed": 30000,
+ "wall_s": 680,
+ "results": [
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "foam_brick",
+   "text": "put the foam brick in the tray",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "gelatin_box",
+   "text": "put the gelatin box on the pink pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "gelatin_box",
+   "text": "put the gelatin box in the tray",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "marker",
+   "text": "put the marker on the white pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "marker",
+   "text": "put the marker on the white pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "soup_can",
+   "text": "pick up the soup can",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "soup_can",
+   "text": "put the soup can on the cyan pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "meat_can",
+   "text": "put the meat can on the white pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "foam_brick",
+   "text": "put the foam brick in the tray",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "soup_can",
+   "text": "put the soup can in the tray",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "marker",
+   "text": "put the marker in the tray",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "meat_can",
+   "text": "pick up the meat can",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "soup_can",
+   "text": "put the soup can on the pink pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "soup_can",
+   "text": "pick up the soup can",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "soup_can",
+   "text": "put the soup can in the tray",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "meat_can",
+   "text": "put the meat can in the tray",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "banana",
+   "text": "put the banana on the white pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "banana",
+   "text": "put the banana on the white pad",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "banana",
+   "text": "put the banana on the white pad",
+   "t": 25.0
+  }
+ ]
+}

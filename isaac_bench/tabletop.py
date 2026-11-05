@@ -25,32 +25,43 @@ BASE_X = -0.05                   # workshop SO101_CFG mounts the base at x=-0.05
 RES = (120, 160)
 CAM_SCALE = int(os.environ.get("TABLETOP_CAM_SCALE", 2))           # render at RES * scale (2 -> 320x240; 4 -> 640x480 for Cosmos export)
 CAM_EXTRA = bool(int(os.environ.get("TABLETOP_CAM_EXTRA", 0)))
-DR = bool(int(os.environ.get("TABLETOP_DR", 1)))                    # domain randomisation (lights, HDRI, camera pose, physics)
+DR = bool(int(os.environ.get("TABLETOP_DR", 1)))
+FRONT = bool(int(os.environ.get("TABLETOP_FRONT", 0)))
+ROOM = bool(int(os.environ.get("TABLETOP_ROOM", 1)))                # randomised room around the table (room.py)             # external camera: off by default (the real robot has only the wrist camera)
+RANDOM_BASE = bool(int(os.environ.get("TABLETOP_RANDOM_BASE", 1)))  # robot base pose randomised on the table every episode                    # domain randomisation (lights, HDRI, camera pose, physics)
 HDRI = sorted(glob.glob(os.path.expanduser("~/VLA/third_party/so101_workshop/source/sim_to_real_so101/assets/hdri/*.exr")))
 FRONT_POS, FRONT_ROT = (0.50, 0.0, 0.36), (0.65328, 0.27060, 0.27060, 0.65328)     # also render depth + instance segmentation (Cosmos controls)
 HOME = np.array([0.0, -0.6, -0.07, 1.51, -1.57, -0.1])   # workshop rest pose with pan centred, gripper pointing down
 
 import json as _json
-YCB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "ycb")   # built by assets/fetch_ycb.py
+import language as L
+YCB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", os.environ.get("TABLETOP_LIB", "objects"))   # assets/fetch_objects.py (56 objects) or "ycb" (10)
 OBJ_META = _json.load(open(os.path.join(YCB_DIR, "objects.json")))
 for _m in OBJ_META.values():
     _m["usd"] = os.path.join(YCB_DIR, os.path.basename(_m["usd"]))
 GRASP = [k for k, m in OBJ_META.items() if m["role"] == "grasp"]          # graspable household objects (YCB)
-CONTAINERS = ["bowl"]                                                     # YCB containers (+ the workshop tray)
+HOLDOUT = [o for o in os.environ.get("TABLETOP_HOLDOUT", "").split(",") if o]   # objects kept out of the sampled scenes (generalisation tests)
+GRASP = [k for k in GRASP if k not in HOLDOUT]
+CONTAINERS = [k for k, m in OBJ_META.items() if m["role"] == "container"]      # bowl (held-out task), bins, crates, box, tray, plate, bucket
+TARGET_CONTAINERS = [c for c in CONTAINERS if c != "bowl"]                     # targets of the "container" task
 DISTRACT = [k for k, m in OBJ_META.items() if m["role"] == "distractor"]
 PADS = {"pink": (0.95, 0.45, 0.70), "white": (0.95, 0.95, 0.95), "cyan": (0.20, 0.80, 0.85)}
 PAD_E = 0.08
 TRAY_SCALE = 0.6                 # workshop tray 0.20 x 0.16 x 0.03 -> 0.12 x 0.096 x 0.018
 TRAY_HALF = (0.10 * TRAY_SCALE, 0.08 * TRAY_SCALE)
 OBJS = GRASP
-TASKS = ("pick", "pad", "tray", "bowl", "push", "rotate", "rel", "topple")
+TASKS = ("pick", "pad", "tray", "bowl", "container", "push", "rotate", "rel", "topple")
 # direction words in the robot frame (x forward / away from the robot, y to the robot's left)
 DIRS = {"left": (0.0, 1.0), "right": (0.0, -1.0), "forward": (1.0, 0.0), "back": (-1.0, 0.0)}
 REL = {"to the left of": (0.0, 1.0), "to the right of": (0.0, -1.0), "behind": (1.0, 0.0), "in front of": (-1.0, 0.0)}
 ELONGATED = lambda m: max(m["size"][:2]) > 1.4 * min(m["size"][:2])      # rotation is visible
 TALL = lambda m: m["height"] > 0.06                                       # can be knocked over
-PARK = lambda i: (-1.0, -0.6 + 0.15 * i)   # off-table parking spots (local xy), on the floor
-FITS = {"tray": lambda m: max(m["size"][:2]) < 0.125, "bowl": lambda m: max(m["size"][:2]) < 0.15}
+PARK = lambda i: (-1.15 + 0.33 * (i % 8), -1.15 + 0.33 * (i // 8))   # unused objects wait on a hidden platform under the floor
+PARK_Z = -2.0
+def fits_in(c):
+    op = OBJ_META[c].get("opening") or OBJ_META[c]["size"][:2]
+    return lambda m: max(m["size"][:2]) < min(op) - 0.01
+FITS = {"tray": lambda m: max(m["size"][:2]) < 0.125, "bowl": fits_in("bowl") if "bowl" in OBJ_META else (lambda m: max(m["size"][:2]) < 0.15)}
 
 
 def scene_cfg(num_envs, spacing=3.0):
@@ -100,6 +111,8 @@ def scene_cfg(num_envs, spacing=3.0):
         leg_c = leg_a.replace(prim_path="{ENV_REGEX_NS}/leg_c", init_state=AssetBaseCfg.InitialStateCfg(pos=(0.6, -0.5, -0.395)))
         leg_d = leg_a.replace(prim_path="{ENV_REGEX_NS}/leg_d", init_state=AssetBaseCfg.InitialStateCfg(pos=(0.6, 0.5, -0.395)))
         robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        park = AssetBaseCfg(prim_path="{ENV_REGEX_NS}/park", spawn=sim_utils.CuboidCfg(size=(2.9, 2.9, 0.1), visible=False,
+                            collision_props=sim_utils.CollisionPropertiesCfg()), init_state=AssetBaseCfg.InitialStateCfg(pos=(0.0, 0.0, PARK_Z - 0.05)))
         tray = RigidObjectCfg(prim_path="{ENV_REGEX_NS}/tray", spawn=sim_utils.UsdFileCfg(
             usd_path=f"{WS_ASSETS}/usd/tray.usda", scale=(TRAY_SCALE,) * 3, mass_props=sim_utils.MassPropertiesCfg(mass=0.15)),
             init_state=RigidObjectCfg.InitialStateCfg(pos=(-1.0, 0.6, 0.02)))
@@ -111,6 +124,12 @@ def scene_cfg(num_envs, spacing=3.0):
                                spawn=sim_utils.PinholeCameraCfg(focal_length=13.5, horizontal_aperture=20.955, clipping_range=(0.005, 5.0)))
 
     cfg = Cfg(num_envs=num_envs, env_spacing=spacing, replicate_physics=False)
+    if not FRONT:
+        cfg.front = None
+    if ROOM:
+        import room
+        for k, v in room.room_scene_entries(num_envs, spacing=spacing).items():
+            setattr(cfg, k, v)
     # pads first so that they are created before (under) the objects; instance attributes -> picked up by InteractiveScene
     for c, rgb in PADS.items():
         setattr(cfg, f"{c}_pad", pad(f"{c}_pad", rgb))
@@ -151,6 +170,7 @@ def describe(name):
 
 
 class Tabletop:
+    dr = None            # DomainRandomizer (set in __init__ when TABLETOP_DR=1); views without __init__ keep None
     """Batched multi-task tabletop env. Positions are local to each env origin (x forward from the robot, z up from the table top)."""
 
     def __init__(self, num_envs=4, seed=0, device="cuda:0", task_mix=TASKS):
@@ -165,15 +185,13 @@ class Tabletop:
         self.table_mats = make_table_materials(self.stage)
         self.sim.reset()
         self._make_skins(num_envs)
+        self.room = None
+        if ROOM:
+            import room
+            self.room = room.RoomRandomizer(self.stage, num_envs, np.random.default_rng(seed + 99), spacing=3.0, sim=self.sim)
         self.robot = self.scene["robot"]
         self._joint_damp0 = self.robot.data.joint_damping.clone()
         self._joint_fric0 = self.robot.data.joint_friction_coeff.clone() if hasattr(self.robot.data, "joint_friction_coeff") else None
-        if DR and HDRI:   # the dome light is shared by all envs: one HDRI + intensity per run (varies across data chunks)
-            from pxr import Sdf, UsdLux
-            dome = UsdLux.DomeLight(self.stage.GetPrimAtPath("/World/sky"))
-            hd = HDRI[int(np.random.default_rng(seed + 77).integers(len(HDRI)))]
-            dome.GetTextureFileAttr().Set(Sdf.AssetPath(hd)); dome.GetIntensityAttr().Set(float(np.random.default_rng(seed + 78).uniform(120, 420)))
-            self.hdri = os.path.basename(hd)
         self.objs = {k: self.scene[k] for k in GRASP + CONTAINERS + DISTRACT + ["tray"] + [f"{c}_pad" for c in PADS]}
         self.origins = self.scene.env_origins
         self.rng = np.random.default_rng(seed)
@@ -182,13 +200,22 @@ class Tabletop:
         self.ep = [None] * num_envs
         self.t = np.zeros(num_envs, int)
         self.home = torch.tensor(HOME, device=device, dtype=torch.float32)
+        self.dr = None
+        if DR:
+            from dr import DomainRandomizer
+            self.dr = DomainRandomizer(self, self.rng)
+            self.global_dr = self.dr.randomize_global()          # shared dome / sun / white balance / wrist focal: one draw per run
+            self.hdri = self.global_dr.get("hdri")
 
     # ---------------------------------------------------------------- episode sampling
     def sample_episode(self):
         """sample a feasible episode (task, objects, layout, instruction); rejection sampling in a loop"""
         for _ in range(5000):
             E = self._sample_once()
+            if E is not None and self.dr is not None and RANDOM_BASE:
+                E = self.dr.transform_episode(E, self.dr.sample_base_pose())
             if E is not None:
+                E.setdefault("base_pose", (BASE_X, 0.0, 0.0))
                 return E
         raise RuntimeError(f"no feasible episode for tasks {self.task_mix}")
 
@@ -197,7 +224,8 @@ class Tabletop:
         task = str(r.choice(self.task_mix))
         pool = list(GRASP); r.shuffle(pool)
         present = pool[: int(r.integers(2, 5))]
-        need = {"rotate": ELONGATED, "topple": TALL}.get(task) or FITS.get(task)
+        cont = str(r.choice(TARGET_CONTAINERS)) if task == "container" else None
+        need = {"rotate": ELONGATED, "topple": TALL}.get(task) or FITS.get(task) or (fits_in(cont) if cont else None)
         if need:   # the target object must suit the task (fits the container / elongated / tall)
             ok = [o for o in present if need(OBJ_META[o])]
             if not ok:
@@ -210,6 +238,7 @@ class Tabletop:
         pads = [f"{c}_pad" for c in r.permutation(list(PADS))[: int(r.integers(1, 3))]] if (task == "pad" or r.random() < 0.5) else []
         bowl = task == "bowl" or r.random() < 0.35
         tray = task == "tray" or (not bowl and r.random() < 0.35)
+        extra_c = [c for c in TARGET_CONTAINERS if c != cont and r.random() < 0.12][:1]     # scenery containers
         distract = [str(d) for d in r.permutation(DISTRACT)[: int(r.integers(0, 3))]]
         if "soup_can" in present:                 # two soup cans would make "the soup can" ambiguous
             distract = [d_ for d_ in distract if d_ != "big_soup_can"]
@@ -221,6 +250,8 @@ class Tabletop:
             text = f"put the {d} in the tray"
         elif task == "bowl":
             text = f"put the {d} in the bowl"
+        elif task == "container":
+            info["container"] = cont; text = L.instruction("container", r, o=d, c=OBJ_META[cont]["desc"])
         elif task == "push":
             dname_ = str(r.choice(list(DIRS))); info["dir"] = DIRS[dname_]; info["push_z"] = min(0.4 * OBJ_META[obj]["height"], 0.022)
             text = f"push the {d} {dname_}" if dname_ in ("left", "right") else f"push the {d} {'away from you' if dname_ == 'forward' else 'toward you'}"
@@ -244,6 +275,8 @@ class Tabletop:
             put("bowl", 0.08, 0.20, 0.27, 0.9)
         if tray:
             put("tray", 0.075, 0.19, 0.25, 0.9)
+        for c in ([cont] if cont else []) + extra_c:
+            put(c, 0.5 * max(OBJ_META[c]["size"][:2]), 0.19, 0.27, 0.9)
         for p in pads:
             put(p, PAD_E * 0.65)
         if task == "topple":   # it is pushed away from the robot: start closer
@@ -282,7 +315,8 @@ class Tabletop:
             info.update(ref=ref, rel_xy=tuple(tgt)); text = f"put the {d} {info['rel']} the {OBJ_META[ref]['desc']}"
         info.update(text=text, layout=layout, present=present, pads=[p for p in pads if p in layout], tray="tray" in layout, bowl="bowl" in layout,
                     table_mat=int(r.integers(len(self.table_mats))))
-        ok = obj in layout and (task != "pad" or info["pad"] in layout) and (task != "tray" or info["tray"]) and (task != "bowl" or info["bowl"])
+        ok = obj in layout and (task != "pad" or info["pad"] in layout) and (task != "tray" or info["tray"]) and (task != "bowl" or info["bowl"]) \
+            and (task != "container" or cont in layout)
         return info if ok else None
 
     def reset(self, env_ids=None, episodes=None, settle=20):
@@ -290,6 +324,8 @@ class Tabletop:
         ids = list(range(self.n)) if env_ids is None else list(env_ids)
         episodes = episodes or [self.sample_episode() for _ in ids]
         idt = torch.tensor(ids, device=self.dev)
+        if self.dr is not None:
+            self.dr.apply_base_pose(ids, [E.get("base_pose", (BASE_X, 0.0, 0.0)) for E in episodes])
         q = self.home[None].repeat(len(ids), 1)
         self.robot.write_joint_state_to_sim(q, torch.zeros_like(q), env_ids=idt)
         self.robot.set_joint_position_target(q, env_ids=idt)
@@ -300,7 +336,8 @@ class Tabletop:
                     (x, y), yaw = E["layout"][name]
                     z = 0.0005 if name == "tray" else (0.001 if name.endswith("pad") else -OBJ_META[name]["zmin"] + 0.002)
                 else:
-                    (x, y), yaw, z = PARK(list(self.objs).index(name)), 0.0, (-0.74 if not name.endswith("pad") else -0.749)
+                    (x, y), yaw = PARK(list(self.objs).index(name)), 0.0
+                    z = PARK_Z + (0.001 if name.endswith("pad") else 0.02 if name == "tray" else -OBJ_META[name]["zmin"] + 0.002)
                 if name == "tray":   # USD origin is the tray's corner: shift so that (x, y) is the tray centre
                     hx, hy = TRAY_HALF; c, s_ = math.cos(yaw), math.sin(yaw)
                     x, y = x - (c * hx - s_ * hy), y - (s_ * hx + c * hy)
@@ -311,9 +348,15 @@ class Tabletop:
         import time as _t; _t0 = _t.time()
         for i, E in zip(ids, episodes):
             self._show_skin(i, E["table_mat"])
-        if DR:
-            self._randomize(ids, episodes)
             self.ep[i] = E; self.t[i] = 0
+        if self.dr is not None:
+            self.dr.randomize_episode(ids, episodes)
+        if getattr(self, "room", None) is not None:
+            info = self.room.randomize(ids)
+            for i, E in zip(ids, episodes):
+                E["room"] = info.get(i)
+            for _ in range(8):           # let the RTX temporal accumulation forget the previous room variant
+                self.sim.render()
         for _ in range(settle):
             self._phys(render=False)
         self._last_reset_s = _t.time() - _t0
@@ -399,15 +442,20 @@ class Tabletop:
         self.robot.set_joint_position_target(torch.clamp(q, lim[..., 0], lim[..., 1]))
         self._phys(render=True)
         self.t += 1
+        if self.dr is not None:
+            self.dr.step(self.t)
 
     # ---------------------------------------------------------------- observations
     def state(self):
         return self.robot.data.joint_pos.cpu().numpy().astype(np.float64)
 
     def images(self):
+        """(front or None, wrist) uint8 (n, 120, 160, 3)"""
         import torch.nn.functional as F
         out = []
         for cam in ("front", "wrist"):
+            if cam == "front" and not FRONT:
+                out.append(None); continue
             x = self.scene[cam].data.output["rgb"][..., :3].permute(0, 3, 1, 2).float()
             x = F.interpolate(x, size=RES, mode="area")
             out.append(x.permute(0, 2, 3, 1).clamp(0, 255).byte().cpu().numpy())
@@ -416,7 +464,7 @@ class Tabletop:
     def cosmos_frames(self, i):
         """high-res RGB, depth (uint8, near=bright) and colourised instance segmentation of env i, both cameras"""
         out = {}
-        for cam in ("front", "wrist"):
+        for cam in (("front", "wrist") if FRONT else ("wrist",)):
             o = self.scene[cam].data.output
             rgb = o["rgb"][i, ..., :3].cpu().numpy().astype(np.uint8)
             d = o["distance_to_image_plane"][i, ..., 0].cpu().numpy()
@@ -479,6 +527,11 @@ class Tabletop:
             elif E["task"] == "rel":
                 d_ = np.linalg.norm(p[:2] - np.array(E["rel_xy"]))
                 out[i] = d_ < 0.045 and bottom < 0.015 and opened and vel < 0.05
+            elif E["task"] == "container":
+                c = E["container"]; mc = OBJ_META[c]; q = self.quat(c)[i]; yaw = 2 * math.atan2(q[3], q[0])
+                d = p[:2] - self.pos(c)[i, :2]; cy, sy = math.cos(yaw), math.sin(yaw)
+                loc = np.abs(np.array([cy * d[0] + sy * d[1], -sy * d[0] + cy * d[1]])); op = np.array(mc.get("opening") or mc["size"][:2])
+                out[i] = np.all(loc < op / 2 - 0.005) and bottom < mc.get("floor_h", 0.01) + 0.03 and opened and vel < 0.05
             elif E["task"] == "bowl":
                 d = np.linalg.norm(p[:2] - self.pos("bowl")[i, :2])
                 out[i] = d < 0.06 and bottom < 0.04 and opened and vel < 0.05

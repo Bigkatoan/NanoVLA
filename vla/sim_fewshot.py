@@ -51,7 +51,8 @@ class FSDataAux(fs.FSData):
         return d
 
 
-def finetune(P, cond, steps, lr, bs, dev, vla_ckpt, enc_lr=3e-5, state_drop=0.0, aux_w=0.0):
+def finetune(P, cond, steps, lr, bs, dev, vla_ckpt, enc_lr=3e-5, state_drop=0.0, aux_w=0.0, hist=None):
+    """hist: optional list, receives the action loss of every step (logging only)"""
     os.environ["VLA_CKPT"] = vla_ckpt
     base = "A" if cond.startswith("A") else ("B" if cond.startswith("B") else "C")
     model, tok, row = fs.make_model(base, dev)
@@ -84,8 +85,15 @@ def finetune(P, cond, steps, lr, bs, dev, vla_ckpt, enc_lr=3e-5, state_drop=0.0,
             with torch.autocast("cuda", dtype=torch.bfloat16):
                 p = model(b["ext"].to(dev), b["wri"].to(dev), b["has_w"].to(dev), b["state"].to(dev), tok(b["label"]).to(dev), rid)
             loss, _ = masked_l1(p.float(), b["tgt"].to(dev), b["valid"].to(dev), b["w"].to(dev))
+            if hist is not None:
+                hist.append(loss.item())
             if aux_head is not None:
-                vis = feats["mem"][:, :98].float().mean(1)            # visual tokens only (ext + wrist) after fusion
+                hw = b["has_w"].to(dev)
+                if hw.all():
+                    vis = feats["mem"][:, :98].float().mean(1)            # visual tokens only (ext + wrist) after fusion
+                else:                                                     # skip masked (absent) wrist tokens
+                    wm = torch.cat([torch.ones_like(hw)[:, None].expand(-1, 49), hw[:, None].expand(-1, 49)], 1).float()
+                    vis = (feats["mem"][:, :98].float() * wm[..., None]).sum(1) / wm.sum(1, keepdim=True)
                 ok = b["aux_ok"].to(dev)
                 if ok.any():
                     loss = loss + aux_w * torch.nn.functional.smooth_l1_loss(aux_head(vis)[ok], b["aux"].to(dev)[ok])

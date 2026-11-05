@@ -2,7 +2,8 @@
 eval client (isaac_bench/isaac_eval.py) over a local socket (stdlib multiprocessing.connection).
 
 Units: LeRobot SO-101 'pos' units (joints -100..100, gripper 0..100), one dataset frame == one env step (60 Hz).
-Request : dict(state=(n,6) float, front=(n,120,160,3) uint8, wrist=(n,120,160,3) uint8)
+Request : dict(state=(n,6) float, front=(n,120,160,3) uint8, wrist=(n,120,160,3) uint8, text=[n str] optional)
+          with --cams wrist the request needs no "front" (ignored if present): the policy sees the wrist camera only.
 Reply   : (n, H, 6) command targets in the same units, chunk spacing = P['step'] frames.
 """
 import argparse, os, json, random, time
@@ -37,6 +38,17 @@ def joint_goal_labels(P):
     return lab
 
 
+def views(req, cams, slot, dev):
+    """request images -> (ext, wri, has_w) model inputs; cams='wrist' never reads req['front']"""
+    wri = torch.stack([prep_img(np.asarray(w)) for w in req["wrist"]]).to(dev)
+    if cams == "wrist":
+        return fs.wrist_views(wri, slot)
+    if "front" not in req:
+        raise KeyError("server runs with --cams both but the request has no 'front' image (start it with --cams wrist)")
+    ext = torch.stack([prep_img(np.asarray(f)) for f in req["front"]]).to(dev)
+    return ext, wri, torch.ones(len(wri), dtype=torch.bool, device=dev)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cfg", default="fixenc", choices=list(CKPTS))
@@ -47,13 +59,22 @@ def main():
     ap.add_argument("--bench", default="isaac_bench", help="data/<bench> in the few-shot bench format")
     ap.add_argument("--vla", default=os.path.join(CK, "vla/vla.pt"), help="starting checkpoint (vla/vla.pt, vla_isaac/vla.pt)")
     ap.add_argument("--save", default="", help="optional path to save the fine-tuned weights + normalisation")
+    ap.add_argument("--cams", default="both", choices=fs.CAM_MODES, help="wrist: train + serve from the wrist camera only")
+    ap.add_argument("--wrist_slot", default="", help="cams=wrist: ext|wri; default = the starting checkpoint's, else ext")
+    ap.add_argument("--aug", default="base", choices=("base", "strong"))
     a = ap.parse_args()
     dev = "cuda"
     fs.ROOT_BENCH = os.path.join(ROOT, a.bench)
     sf.goal_labels = joint_goal_labels
     repo = json.load(open(os.path.join(ROOT, a.bench, "repos.json")))[0]
     torch.manual_seed(a.seed); random.seed(a.seed); np.random.seed(a.seed)
-    P = fs.prepare(repo, a.N, 0, a.seed)
+    P = fs.prepare(repo, a.N, 0, a.seed, cams=a.cams)
+    meta0 = torch.load(a.vla, map_location="cpu", weights_only=False)
+    ck_cams = meta0.get("cams", "both"); slot = a.wrist_slot or meta0.get("wrist_slot", "ext"); del meta0
+    if ck_cams != a.cams:
+        print(json.dumps(dict(event="warning", msg=f"starting checkpoint was trained with cams={ck_cams}, fine-tuning with cams={a.cams}")), flush=True)
+    assert slot in fs.WRIST_SLOTS, slot
+    P["aug"], P["wrist_slot"] = a.aug, slot
     cond, sd, aux = CKPTS[a.cfg]
     vla = a.vla
     t0 = time.time()
@@ -61,11 +82,12 @@ def main():
     print(json.dumps(dict(event="trained", cfg=a.cfg, N=a.N, seed=a.seed, train_eps=P["n_train_eps"], samples=len(P["train"]), secs=round(time.time() - t0))), flush=True)
     st, coef = P["st"], P["coef"]; a_s, b_s = coef[:, 0], coef[:, 1]
     if a.save:
-        torch.save(dict(model=model.state_dict(), st=st, coef=coef, row=row, step=P["step"], cfg=a.cfg, N=a.N, seed=a.seed, bench=a.bench), a.save)
+        torch.save(dict(model=model.state_dict(), st=st, coef=coef, row=row, step=P["step"], cfg=a.cfg, N=a.N, seed=a.seed, bench=a.bench,
+                        cams=a.cams, wrist_slot=slot, aug=a.aug), a.save)
     from train_text import clean
     ids_default = tok([TEXT]).to(dev)
     with Listener(("localhost", a.port), authkey=b"vla-isaac") as L:
-        print(json.dumps(dict(event="ready", port=a.port, step=P["step"])), flush=True)
+        print(json.dumps(dict(event="ready", port=a.port, step=P["step"], cams=a.cams)), flush=True)
         while True:
             with L.accept() as c:
                 while True:
@@ -74,20 +96,20 @@ def main():
                     except EOFError:
                         break
                     if req == "meta":
-                        c.send(dict(step=P["step"], H=H)); continue
+                        c.send(dict(step=P["step"], H=H, cams=a.cams)); continue
                     if req == "quit":
                         return
                     S = np.asarray(req["state"], np.float64); n = len(S)
                     ids = tok([clean(t) for t in req["text"]]).to(dev) if "text" in req else ids_default.expand(n, -1)
-                    ext = torch.stack([prep_img(f) for f in req["front"]]).to(dev)
-                    wri = torch.stack([prep_img(w) for w in req["wrist"]]).to(dev)
+                    ext, wri, hw = views(req, a.cams, slot, dev)
                     s_n = torch.from_numpy(np.clip((S - st["s_mean"]) / st["s_std"], -5, 5).astype(np.float32)).to(dev)
                     with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
-                        p = model(ext, wri, torch.ones(n, dtype=torch.bool, device=dev), s_n, ids, torch.full((n,), row, device=dev)).float().cpu().numpy()
+                        p = model(ext, wri, hw, s_n, ids, torch.full((n,), row, device=dev)).float().cpu().numpy()
                     tgt = np.empty((n, H, 6))
                     tgt[..., :5] = S[:, None, :5] + p[..., :5] * st["dstd"]
                     tgt[..., 5] = (p[..., 5] + 1) / 2 * (st["g_hi"] - st["g_lo"]) + st["g_lo"]
-                    c.send((tgt - b_s) / np.where(np.abs(a_s) > 1e-3, a_s, 1.0))
+                    # plain lists: the Isaac client runs numpy 1.26 and cannot unpickle numpy-2 arrays
+                    c.send(((tgt - b_s) / np.where(np.abs(a_s) > 1e-3, a_s, 1.0)).astype(float).tolist())
 
 
 if __name__ == "__main__":

@@ -7,9 +7,12 @@ interpolation), the first `exec` elements are executed, then it re-plans. Succes
 (object placed / lifted, gripper open where required). Each env runs its own episodes asynchronously.
 
     python tabletop_eval.py --tasks bowl --episodes 50 --num_envs 4 --port 6000 --out results/bowl_N20.json
+    # wrist-camera-only policy (server started with --cams wrist): only env.scene["wrist"] is rendered/read
+    python tabletop_eval.py --cams wrist --tasks bowl --episodes 50 --num_envs 4 --port 6000 --out results/bowl_wrist.json
+    # no Isaac: fake wrist-only scene, in-process fake policy (--port 0) or a real policy server (--port N)
+    python tabletop_eval.py --dry_run --cams wrist --port 0 --episodes 6
 """
 import argparse, json, os, sys, time
-from isaaclab.app import AppLauncher
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--tasks", default="pick,pad,tray,bowl")
@@ -22,18 +25,31 @@ ap.add_argument("--max_s", type=float, default=25.0)
 ap.add_argument("--out", default="results/tabletop_eval.json")
 ap.add_argument("--video", default="", help="mp4 of env 0's first episodes")
 ap.add_argument("--video_eps", type=int, default=3)
+ap.add_argument("--cams", default="both", choices=("both", "wrist"), help="wrist: render/send the wrist camera only (scene may lack 'front')")
+ap.add_argument("--dry_run", action="store_true", help="no Isaac: fake wrist-only scene (policy_io.FakeTabletop); --port 0 = fake policy")
 a = ap.parse_args()
-app = AppLauncher(headless=True, enable_cameras=True).app
-
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import numpy as np, torch
+import numpy as np
 from multiprocessing.connection import Client
-import tabletop as tt
+import policy_io as pio
+if a.dry_run:
+    tt = pio.FakeTabletop
+else:
+    from isaaclab.app import AppLauncher
+    app = AppLauncher(headless=True, enable_cameras=True).app
+    import torch
+    import tabletop as tt
 
 
 def main():
-    env = tt.Tabletop(num_envs=a.num_envs, seed=a.seed, task_mix=tuple(a.tasks.split(",")))
-    conn = Client(("localhost", a.port), authkey=b"vla-isaac"); conn.send("meta"); meta = conn.recv(); step = meta["step"]
+    if a.dry_run:
+        env = pio.FakeTabletop(num_envs=a.num_envs, seed=a.seed, task_mix=tuple(a.tasks.split(",")))
+    else:
+        env = tt.Tabletop(num_envs=a.num_envs, seed=a.seed, task_mix=tuple(a.tasks.split(",")))
+    conn = pio.FakeConn(a.cams) if a.dry_run and a.port == 0 else Client(("localhost", a.port), authkey=b"vla-isaac")
+    conn.send("meta"); meta = conn.recv(); step = meta["step"]
+    if meta.get("cams", "both") != a.cams:
+        raise SystemExit(f"policy server runs with cams={meta.get('cams', 'both')} but the client has --cams {a.cams}")
     n = env.n
     env.reset()
     for _ in range(10):
@@ -47,10 +63,10 @@ def main():
         S = env.state()
         need = [i for i in range(n) if plan[i] is None or kp[i] >= len(plan[i])]
         if need or (a.video and ep0 < a.video_eps):
-            f, w = env.images()
+            imgs = pio.get_images(env, a.cams)
         if need:
-            conn.send(dict(state=S[need], front=[f[i] for i in need], wrist=[w[i] for i in need], text=[env.ep[i]["text"] for i in need]))
-            chunks = conn.recv()
+            conn.send(pio.build_request(S, need, imgs, [E["text"] for E in env.ep], a.cams))
+            chunks = np.asarray(conn.recv(), dtype=np.float64)
             for j, i in enumerate(need):
                 seq, prev = [], cur[i]
                 for k in range(a.exec):
@@ -60,7 +76,7 @@ def main():
                 plan[i], kp[i] = seq, 0
         cmd = np.stack([plan[i][kp[i]] for i in range(n)]); kp += 1; cur = cmd.copy()
         if a.video and ep0 < a.video_eps:
-            frames.append(np.concatenate([f[0], w[0]], 1))
+            frames.append(pio.video_frame(imgs, a.cams))
         env.step(cmd)
         succ = env.success()
         done = [i for i in range(n) if succ[i] or env.t[i] >= a.max_s * tt.CTRL_HZ]
@@ -80,7 +96,7 @@ def main():
     for r in res:
         for key in (r["task"], r["obj"]):
             b = by.setdefault(key, [0, 0]); b[0] += r["success"]; b[1] += 1
-    out = dict(tasks=a.tasks, episodes=len(res), success_rate=float(np.mean([r["success"] for r in res])), by=by, exec=a.exec, seed=a.seed,
+    out = dict(tasks=a.tasks, cams=a.cams, dry_run=a.dry_run, episodes=len(res), success_rate=float(np.mean([r["success"] for r in res])), by=by, exec=a.exec, seed=a.seed,
                wall_s=round(time.time() - t0), results=res)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True); json.dump(out, open(a.out, "w"), indent=1)
     if frames:
@@ -97,5 +113,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        import traceback; traceback.print_exc(); sys.stdout.flush(); sys.stderr.flush(); os._exit(1)   # Kit would hang on exit
     sys.stdout.flush(); os._exit(0)

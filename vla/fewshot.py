@@ -26,7 +26,10 @@ WRIST_KEYS = ("wrist", "gripper", "hand", "on_robot", "arm")
 ROOT_BENCH = None
 
 
-def prepare(repo, N, n_test, seed):
+def prepare(repo, N, n_test, seed, cams="both"):
+    """cams='both': external cam (+ wrist when present, has_w) as in pretraining; cams='wrist': wrist cam only -
+    frames without a wrist image are dropped, the front camera is never read (samples carry ext jpeg = None)."""
+    assert cams in CAM_MODES, cams
     name = repo.replace("/", "__")
     bdir = ROOT_BENCH or os.path.join(ROOT, "bench")
     Fr = pd.read_parquet(os.path.join(bdir, "frames", name + ".parquet"))
@@ -48,10 +51,12 @@ def prepare(repo, N, n_test, seed):
         G.append(A[:, 5]); SS.append(S)
     D, G, SS = np.concatenate(D), np.concatenate(G), np.concatenate(SS)
     st = dict(dstd=np.maximum(D.std(0), 1e-2), g_lo=np.percentile(G, 1), g_hi=np.percentile(G, 99), s_mean=SS.mean(0), s_std=np.maximum(SS.std(0), 1e-2))
-    cams = list(Fr.cam.unique())
-    wr = [c for c in cams if any(k in c.lower() for k in WRIST_KEYS)]
-    ext = [c for c in cams if c not in wr] or cams
+    cams_ = list(Fr.cam.unique())
+    wr = [c for c in cams_ if any(k in c.lower() for k in WRIST_KEYS)]
+    ext = [c for c in cams_ if c not in wr] or cams_
     wcam = wr[0] if wr else None
+    if cams == "wrist" and wcam is None:
+        raise ValueError(f"{repo}: cams='wrist' but no wrist camera among {cams_}")
     task = {}
     for e in tr + te:
         t = Fr[Fr.ep == e].task.iloc[0]
@@ -63,6 +68,13 @@ def prepare(repo, N, n_test, seed):
             A, S = acts[e]
             flags, _ = frame_flags(A, fps)
             g = Fr[Fr.ep == e]
+            if cams == "wrist":                      # wrist-only: iterate over the wrist frames themselves
+                for r in g[g.cam == wcam].sort_values("fidx").itertuples():
+                    f = int(r.fidx)
+                    if r.jpeg is None or f + step >= len(A) or flags[min(f, len(A) - 1)] & (IDLE_EDGE | IDLE_PAUSE):
+                        continue
+                    out.append((e, f, None, r.jpeg))
+                continue
             ge = g[g.cam == ext[0]].sort_values("fidx")
             gw = g[g.cam == wcam].set_index("fidx") if wcam else None
             for r in ge.itertuples():
@@ -73,13 +85,40 @@ def prepare(repo, N, n_test, seed):
                 out.append((e, f, r.jpeg, wj))
         return out
     cf = coef if sc > 0.6 else np.c_[np.ones(6), np.zeros(6)].astype(np.float32)
-    return dict(train=samples(tr), test=samples(te), acts=acts, st=st, step=step, task=task, fps=fps, n_train_eps=len(tr), n_test_eps=len(te), coef=cf)
+    return dict(train=samples(tr), test=samples(te), acts=acts, st=st, step=step, task=task, fps=fps, n_train_eps=len(tr), n_test_eps=len(te), coef=cf, cams=cams)
+
+
+CAM_MODES = ("both", "wrist")
+WRIST_SLOTS = ("ext", "wri")
+
+
+def wrist_views(w, slot="ext"):
+    """wrist-only input -> (ext, wri, has_w) for VLA.forward. w: normalised image(s) [...,3,112,112].
+    slot='ext': wrist image in the external slot, wrist tokens masked (has_w=False) - how single-camera community
+    repos were seen in pretraining. slot='wri': wrist image in the wrist slot, ext = blank (dataset-mean) image."""
+    blank = torch.zeros_like(w)
+    hw = torch.full(w.shape[:-3], slot == "wri", dtype=torch.bool, device=w.device)
+    return (w, blank, hw) if slot == "ext" else (blank, w, hw)
+
+
+def strong_aug():
+    """robustness to heavy domain randomisation: geometry (rotation, resized crop), photometric, blur, JPEG noise"""
+    return T.Compose([T.RandomApply([T.RandomRotation(8)], p=0.5),
+                      T.RandomResizedCrop(112, scale=(0.6, 1.0), ratio=(1.1, 1.5), antialias=True),
+                      T.RandomApply([T.ColorJitter(0.4, 0.4, 0.4, 0.05)], p=0.8),
+                      T.RandomGrayscale(p=0.05),
+                      T.RandomApply([T.GaussianBlur(5, sigma=(0.1, 1.5))], p=0.3),
+                      T.RandomApply([T.JPEG((30, 90))], p=0.3)])
 
 
 class FSData(torch.utils.data.Dataset):
+    """P['aug'] = 'base' (default, MuJoCo benchmark) | 'strong'; P['wrist_slot'] for cams='wrist' samples."""
+
     def __init__(self, P, split, train):
         self.S, self.P, self.train = P[split], P, train
-        self.aug = T.Compose([T.RandomResizedCrop(112, scale=(0.8, 1.0), ratio=(1.2, 1.4), antialias=True), T.RandomApply([T.ColorJitter(0.3, 0.3, 0.1, 0.0)], p=0.8)])
+        self.strong = P.get("aug", "base") == "strong"
+        self.slot = P.get("wrist_slot", "ext")
+        self.aug = strong_aug() if self.strong else T.Compose([T.RandomResizedCrop(112, scale=(0.8, 1.0), ratio=(1.2, 1.4), antialias=True), T.RandomApply([T.ColorJitter(0.3, 0.3, 0.1, 0.0)], p=0.8)])
 
     def __len__(self):
         return len(self.S)
@@ -87,7 +126,10 @@ class FSData(torch.utils.data.Dataset):
     def img(self, b):
         x = decode_jpeg(torch.frombuffer(bytearray(b), dtype=torch.uint8))
         x = self.aug(x) if self.train else T.functional.resize(x, [112, 149], antialias=True)[..., 18:130]
-        return (x.float() / 255 - MEAN) / STD
+        x = (x.float() / 255 - MEAN) / STD
+        if self.train and self.strong and random.random() < 0.3:
+            x = x + torch.randn_like(x) * random.uniform(0.02, 0.1)      # sensor noise
+        return x
 
     def __getitem__(self, i):
         e, f, ej, wj = self.S[i]
@@ -96,12 +138,16 @@ class FSData(torch.utils.data.Dataset):
         tgt = np.empty((H, 6), np.float32)
         tgt[:, :5] = (A[idx, :5] - S[f, :5]) / st["dstd"]
         tgt[:, 5] = (A[idx, 5] - st["g_lo"]) / (st["g_hi"] - st["g_lo"] + 1e-6) * 2 - 1
-        ext = self.img(ej)
-        wri = self.img(wj) if wj is not None else torch.zeros_like(ext)
+        if ej is None:                       # wrist-only sample (cams='wrist')
+            ext, wri, hw = wrist_views(self.img(wj), self.slot)
+        else:
+            ext = self.img(ej)
+            wri = self.img(wj) if wj is not None else torch.zeros_like(ext)
+            hw = torch.tensor(wj is not None)
         lab = self.P["task"][e]
         if self.train and random.random() < 0.3:
             lab = augment(lab, random)
-        return dict(ext=ext, wri=wri, has_w=torch.tensor(wj is not None), state=torch.from_numpy(np.clip((S[f] - st["s_mean"]) / st["s_std"], -5, 5).astype(np.float32)),
+        return dict(ext=ext, wri=wri, has_w=hw, state=torch.from_numpy(np.clip((S[f] - st["s_mean"]) / st["s_std"], -5, 5).astype(np.float32)),
                     tgt=torch.from_numpy(np.clip(tgt, -10, 10)), valid=torch.from_numpy(valid), rid=torch.tensor(0), w=torch.tensor(1.0), label=lab)
 
 

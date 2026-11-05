@@ -238,3 +238,9 @@ isaac_bench/assets/ycb/Materials/
 *.pt
 *.parquet
 isaac_bench/.gen_snapshot/
+/.gpu.lock
+isaac_bench/assets/room/
+isaac_bench/assets/objects/src/
+isaac_bench/assets/objects/*
+!isaac_bench/assets/objects/objects.json
+!isaac_bench/assets/objects/drop_test.json

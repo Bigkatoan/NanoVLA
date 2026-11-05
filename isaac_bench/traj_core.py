@@ -23,7 +23,9 @@ class CosmosWriter:
 
     def add(self, frames, fidx):
         import av
-        for (cam, mod), k in zip(self.STREAMS, range(6)):
+        for (cam, mod) in self.STREAMS:
+            if cam not in frames:           # wrist-only scene
+                continue
             im = frames[cam][("rgb", "depth", "seg").index(mod)]
             if (cam, mod) not in self.c:
                 c = av.open(os.path.join(self.dir, f"{cam}_{mod}.mp4"), "w"); st = c.add_stream("libx264", rate=15)
@@ -62,6 +64,8 @@ class TrajRunner:
         if name == "$target":
             if E["task"] == "rel":
                 return "$rel"
+            if E["task"] == "container":
+                return E["container"]
             return E.get("pad") or ("tray" if E["task"] == "tray" else "bowl")
         return name
 

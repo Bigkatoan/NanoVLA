@@ -28,6 +28,7 @@ ap.add_argument("--video", default="", help="mp4 path for an annotated visualisa
 ap.add_argument("--video_eps", type=int, default=1, help="number of episodes (env 0) in the video")
 ap.add_argument("--markers", type=int, default=1, help="draw node markers in the video (never in recorded data)")
 ap.add_argument("--cosmos_dir", default="", help="also write high-res RGB + depth + segmentation mp4s per kept episode for Cosmos Transfer (needs TABLETOP_CAM_EXTRA=1)")
+ap.add_argument("--skip_frames", type=int, default=30, help="do not record camera frames during the first control steps after a reset")
 ap.add_argument("--tasks", default="", help="comma list overriding the spec's task types (e.g. hold one out for few-shot tests)")
 ap.add_argument("--only_success", type=int, default=1, help="with --out: keep only episodes that pass the task's success check")
 ap.add_argument("--max_steps", type=int, default=45 * 30, help="per-episode time limit in control steps")
@@ -123,19 +124,23 @@ def main():
             for i in range(env.n):
                 buf[i]["S"].append(S[i].astype(np.float32)); buf[i]["A"].append(cmd[i].astype(np.float32))
                 if rec[i]:
-                    buf[i]["F"].append((int(env.t[i]), f[i], w[i]))
+                    if env.t[i] >= a.skip_frames:       # renderer ghosting right after a reset: drop the first frames
+                        buf[i]["F"].append((int(env.t[i]), None if f is None else f[i], w[i]))
         if cw is not None:
             for i in range(env.n):
                 if env.t[i] % 2 == 0:
                     cw[i].add(env.cosmos_frames(i), env.t[i])
         if vis_frame:
-            hf = env.scene["front"].data.output["rgb"][0, ..., :3].cpu().numpy(); hw = env.scene["wrist"].data.output["rgb"][0, ..., :3].cpu().numpy()
+            hw = env.scene["wrist"].data.output["rgb"][0, ..., :3].cpu().numpy()
+            hf = env.scene["front"].data.output["rgb"][0, ..., :3].cpu().numpy() if tt.FRONT else np.zeros((0, hw.shape[1], 3), np.uint8)
+            if not tt.FRONT:
+                hf = hw; hw = np.zeros((hw.shape[0], 0, 3), np.uint8)
             im = Image.fromarray(np.concatenate([hf, hw], 1)); W, Hh = im.size
             canvas = Image.new("RGB", (W, Hh + 46), "white"); canvas.paste(im, (0, 46)); d = ImageDraw.Draw(canvas)
             d.text((6, 3), f"\"{env.ep[0]['text']}\"", font=FONT_B, fill="black")
             d.text((6, 24), runner.label(0) + f"   t={env.t[0] / tt.CTRL_HZ:4.1f}s   jaw={S[0, 5]:+.2f} rad", font=FONT, fill=(50, 50, 50))
             if markers is not None:
-                uv, ok = project(env, [runner.resolve(0, st["node"], runner.yaw[0])[0] for st in spec["trajectory"]])
+                uv, ok = project(env, [runner.resolve(0, st["node"], runner.yaw[0])[0] for st in spec["trajectory"]]) if tt.FRONT else (np.zeros((0, 2)), np.zeros(0, bool))
                 seen = set()
                 for (u, v), good, st in zip(uv, ok, spec["trajectory"]):
                     if good and st["node"] not in seen and 0 <= u < hf.shape[1] and 0 <= v < hf.shape[0]:
@@ -149,7 +154,7 @@ def main():
         for i in finished:
             E = env.ep[i]
             p_end = env.pos(E["obj"])[i]; q_end = env.quat(E["obj"])[i]
-            tgt = runner.sub(i, "$target") if E["task"] in ("pad", "tray", "bowl", "rel") else None
+            tgt = runner.sub(i, "$target") if E["task"] in ("pad", "tray", "bowl", "rel", "container") else None
             tgt_xy = (np.asarray(E["rel_xy"]) if tgt == "$rel" else env.tray_center(i)[0] if tgt == "tray" else env.pos(tgt)[i][:2]) if tgt else None
             up_z = 1 - 2 * (q_end[1] ** 2 + q_end[2] ** 2)          # z-component of the object's up axis (1 = upright)
             r_ = dict(ep=n_done, text=E["text"], success_check=bool(succ[i]), task=E["task"], obj=E["obj"], steps=int(env.t[i]),
@@ -169,6 +174,8 @@ def main():
                     acts[f"ep{e}_action"] = np.stack(buf[i]["A"]); acts[f"ep{e}_state"] = np.stack(buf[i]["S"])
                     for fidx, fi, wi in buf[i]["F"]:
                         for cam, im in (("front", fi), ("wrist", wi)):
+                            if im is None:
+                                continue
                             b = io.BytesIO(); Image.fromarray(im).save(b, format="JPEG", quality=90)
                             rows.append((e, cam, fidx, b.getvalue(), E["text"], E["text"]))
                 n_done += 1

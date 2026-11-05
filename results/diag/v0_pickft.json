@@ -1,0 +1,154 @@
+{
+ "tasks": "pick",
+ "cams": "wrist",
+ "dry_run": false,
+ "episodes": 16,
+ "success_rate": 0.0625,
+ "by": {
+  "pick": [
+   1,
+   16
+  ],
+  "marker": [
+   1,
+   3
+  ],
+  "foam_brick": [
+   0,
+   4
+  ],
+  "pudding_box": [
+   0,
+   3
+  ],
+  "gelatin_box": [
+   0,
+   1
+  ],
+  "banana": [
+   0,
+   3
+  ],
+  "soup_can": [
+   0,
+   2
+  ]
+ },
+ "exec": 4,
+ "seed": 30000,
+ "wall_s": 414,
+ "results": [
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "marker",
+   "text": "pick up the marker",
+   "t": 4.43
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "pudding_box",
+   "text": "pick up the pudding box",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "marker",
+   "text": "pick up the marker",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "marker",
+   "text": "pick up the marker",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "pudding_box",
+   "text": "pick up the pudding box",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "pudding_box",
+   "text": "pick up the pudding box",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "gelatin_box",
+   "text": "pick up the gelatin box",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "banana",
+   "text": "pick up the banana",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "foam_brick",
+   "text": "pick up the foam brick",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "banana",
+   "text": "pick up the banana",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "soup_can",
+   "text": "pick up the soup can",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "banana",
+   "text": "pick up the banana",
+   "t": 25.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "soup_can",
+   "text": "pick up the soup can",
+   "t": 25.0
+  }
+ ]
+}

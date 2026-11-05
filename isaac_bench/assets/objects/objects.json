@@ -1,0 +1,1803 @@
+{
+ "banana": {
+  "usd": "banana.usda",
+  "desc": "banana",
+  "role": "grasp",
+  "mass": 0.066,
+  "scale": 1.0,
+  "size": [
+   0.1972,
+   0.0741,
+   0.0386
+  ],
+  "zmin": -0.0193,
+  "height": 0.0386,
+  "category": "banana",
+  "colors": [
+   "yellow"
+  ],
+  "aliases": [
+   "fruit"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/011_banana.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   -0.0049,
+   0.0179
+  ],
+  "grasp_width": 0.0383,
+  "grasp_h": 0.0191,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0162,
+  "sim_grasp_width": 0.037
+ },
+ "marker": {
+  "usd": "marker.usda",
+  "desc": "marker",
+  "role": "grasp",
+  "mass": 0.016,
+  "scale": 1.0,
+  "size": [
+   0.0188,
+   0.1209,
+   0.0195
+  ],
+  "zmin": -0.0097,
+  "height": 0.0195,
+  "category": "marker",
+  "colors": [
+   "black",
+   "white"
+  ],
+  "aliases": [
+   "pen",
+   "felt pen"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/040_large_marker.usd",
+  "close_axis": "x",
+  "grasp_xy": [
+   -0.0002,
+   0.0
+  ],
+  "grasp_width": 0.0175,
+  "grasp_h": 0.012,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0092,
+  "sim_grasp_width": 0.0174
+ },
+ "foam_brick": {
+  "usd": "foam_brick.usda",
+  "desc": "foam brick",
+  "role": "grasp",
+  "mass": 0.012,
+  "scale": 0.7,
+  "size": [
+   0.0545,
+   0.0358,
+   0.0368
+  ],
+  "zmin": -0.0184,
+  "height": 0.0368,
+  "category": "foam brick",
+  "colors": [
+   "red"
+  ],
+  "aliases": [
+   "foam block",
+   "sponge brick"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/061_foam_brick.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0001
+  ],
+  "grasp_width": 0.0353,
+  "grasp_h": 0.0182,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0182,
+  "sim_grasp_width": 0.0356
+ },
+ "gelatin_box": {
+  "usd": "gelatin_box.usda",
+  "desc": "gelatin box",
+  "role": "grasp",
+  "mass": 0.097,
+  "scale": 1.0,
+  "size": [
+   0.0892,
+   0.03,
+   0.0731
+  ],
+  "zmin": -0.0366,
+  "height": 0.0731,
+  "category": "gelatin box",
+  "colors": [
+   "red",
+   "white"
+  ],
+  "aliases": [
+   "jello box",
+   "small box"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/009_gelatin_box.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   -0.0
+  ],
+  "grasp_width": 0.0299,
+  "grasp_h": 0.0477,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0359,
+  "sim_grasp_width": 0.0298
+ },
+ "pudding_box": {
+  "usd": "pudding_box.usda",
+  "desc": "pudding box",
+  "role": "grasp",
+  "mass": 0.12,
+  "scale": 1.0,
+  "size": [
+   0.1137,
+   0.0385,
+   0.0898
+  ],
+  "zmin": -0.0449,
+  "height": 0.0898,
+  "category": "pudding box",
+  "colors": [
+   "red",
+   "white"
+  ],
+  "aliases": [
+   "chocolate box",
+   "box"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/008_pudding_box.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   -0.0002
+  ],
+  "grasp_width": 0.0381,
+  "grasp_h": 0.0648,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0435,
+  "sim_grasp_width": 0.0375
+ },
+ "meat_can": {
+  "usd": "meat_can.usda",
+  "desc": "meat can",
+  "role": "grasp",
+  "mass": 0.06,
+  "scale": 0.65,
+  "size": [
+   0.0661,
+   0.0374,
+   0.0543
+  ],
+  "zmin": -0.0272,
+  "height": 0.0543,
+  "category": "meat can",
+  "colors": [
+   "green",
+   "yellow"
+  ],
+  "aliases": [
+   "spam can",
+   "tin"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/010_potted_meat_can.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   -0.0002
+  ],
+  "grasp_width": 0.0334,
+  "grasp_h": 0.0271,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0269,
+  "sim_grasp_width": 0.0356
+ },
+ "soup_can": {
+  "usd": "soup_can.usda",
+  "desc": "small soup can",
+  "role": "grasp",
+  "mass": 0.06,
+  "scale": 0.55,
+  "size": [
+   0.0372,
+   0.0372,
+   0.056
+  ],
+  "zmin": -0.028,
+  "height": 0.056,
+  "category": "soup can",
+  "colors": [
+   "red",
+   "white"
+  ],
+  "aliases": [
+   "small can",
+   "tomato can"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/005_tomato_soup_can.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   -0.0003
+  ],
+  "grasp_width": 0.0364,
+  "grasp_h": 0.028,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0278,
+  "sim_grasp_width": 0.0363
+ },
+ "scissors": {
+  "usd": "scissors.usda",
+  "desc": "scissors",
+  "role": "grasp",
+  "mass": 0.082,
+  "scale": 1.0,
+  "size": [
+   0.0911,
+   0.1972,
+   0.0172
+  ],
+  "zmin": -0.0086,
+  "height": 0.0172,
+  "category": "scissors",
+  "colors": [
+   "orange",
+   "grey"
+  ],
+  "aliases": [
+   "pair of scissors"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/037_scissors.usd",
+  "close_axis": "x",
+  "grasp_xy": [
+   0.0131,
+   -0.0049
+  ],
+  "grasp_width": 0.0259,
+  "grasp_h": 0.012,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0069,
+  "sim_grasp_width": 0.0223
+ },
+ "large_clamp": {
+  "usd": "large_clamp.usda",
+  "desc": "clamp",
+  "role": "distractor",
+  "mass": 0.125,
+  "scale": 1.0,
+  "size": [
+   0.1649,
+   0.1217,
+   0.0364
+  ],
+  "zmin": -0.0182,
+  "height": 0.0364,
+  "category": "clamp",
+  "colors": [
+   "black"
+  ],
+  "aliases": [
+   "spring clamp"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/051_large_clamp.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0177
+ },
+ "tuna_can": {
+  "usd": "tuna_can.usda",
+  "desc": "small tuna can",
+  "role": "grasp",
+  "mass": 0.03,
+  "scale": 0.45,
+  "size": [
+   0.0385,
+   0.0385,
+   0.0151
+  ],
+  "zmin": -0.0075,
+  "height": 0.0151,
+  "category": "tuna can",
+  "colors": [
+   "black",
+   "blue"
+  ],
+  "aliases": [
+   "small tin",
+   "can"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/007_tuna_fish_can.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.038,
+  "grasp_h": 0.012,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0075,
+  "sim_grasp_width": 0.0377
+ },
+ "coffee_can": {
+  "usd": "coffee_can.usda",
+  "desc": "small coffee can",
+  "role": "grasp",
+  "mass": 0.05,
+  "scale": 0.38,
+  "size": [
+   0.0389,
+   0.0389,
+   0.0533
+  ],
+  "zmin": -0.0266,
+  "height": 0.0533,
+  "category": "coffee can",
+  "colors": [
+   "blue",
+   "grey"
+  ],
+  "aliases": [
+   "small coffee tin",
+   "can"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/002_master_chef_can.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0001
+  ],
+  "grasp_width": 0.0385,
+  "grasp_h": 0.0266,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0266,
+  "sim_grasp_width": 0.0383
+ },
+ "big_soup_can": {
+  "usd": "big_soup_can.usda",
+  "desc": "large soup can",
+  "role": "distractor",
+  "mass": 0.349,
+  "scale": 1.0,
+  "size": [
+   0.0677,
+   0.0677,
+   0.1019
+  ],
+  "zmin": -0.0509,
+  "height": 0.1019,
+  "category": "soup can",
+  "colors": [
+   "red",
+   "white"
+  ],
+  "aliases": [
+   "tomato soup can"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/005_tomato_soup_can.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0505
+ },
+ "master_chef_can": {
+  "usd": "master_chef_can.usda",
+  "desc": "large coffee can",
+  "role": "distractor",
+  "mass": 0.414,
+  "scale": 1.0,
+  "size": [
+   0.1024,
+   0.1023,
+   0.1402
+  ],
+  "zmin": -0.0701,
+  "height": 0.1402,
+  "category": "coffee can",
+  "colors": [
+   "blue",
+   "grey"
+  ],
+  "aliases": [
+   "coffee tin"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/002_master_chef_can.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.07
+ },
+ "big_tuna_can": {
+  "usd": "big_tuna_can.usda",
+  "desc": "large tuna can",
+  "role": "distractor",
+  "mass": 0.171,
+  "scale": 1.0,
+  "size": [
+   0.0856,
+   0.0855,
+   0.0335
+  ],
+  "zmin": -0.0168,
+  "height": 0.0335,
+  "category": "tuna can",
+  "colors": [
+   "black",
+   "blue"
+  ],
+  "aliases": [
+   "tin"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/007_tuna_fish_can.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0166
+ },
+ "cracker_box": {
+  "usd": "cracker_box.usda",
+  "desc": "cracker box",
+  "role": "distractor",
+  "mass": 0.411,
+  "scale": 1.0,
+  "size": [
+   0.164,
+   0.0718,
+   0.2134
+  ],
+  "zmin": -0.1067,
+  "height": 0.2134,
+  "category": "cracker box",
+  "colors": [
+   "red",
+   "white"
+  ],
+  "aliases": [
+   "cereal box",
+   "big box"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/003_cracker_box.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.106
+ },
+ "sugar_box": {
+  "usd": "sugar_box.usda",
+  "desc": "sugar box",
+  "role": "distractor",
+  "mass": 0.514,
+  "scale": 1.0,
+  "size": [
+   0.0927,
+   0.0451,
+   0.1763
+  ],
+  "zmin": -0.0881,
+  "height": 0.1763,
+  "category": "sugar box",
+  "colors": [
+   "yellow",
+   "white"
+  ],
+  "aliases": [
+   "box"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/004_sugar_box.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0878
+ },
+ "mustard": {
+  "usd": "mustard.usda",
+  "desc": "mustard bottle",
+  "role": "distractor",
+  "mass": 0.603,
+  "scale": 1.0,
+  "size": [
+   0.096,
+   0.0582,
+   0.1913
+  ],
+  "zmin": -0.0957,
+  "height": 0.1913,
+  "category": "mustard bottle",
+  "colors": [
+   "yellow"
+  ],
+  "aliases": [
+   "mustard",
+   "bottle"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/006_mustard_bottle.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0952
+ },
+ "pitcher": {
+  "usd": "pitcher.usda",
+  "desc": "pitcher",
+  "role": "distractor",
+  "mass": 0.178,
+  "scale": 1.0,
+  "size": [
+   0.1886,
+   0.1331,
+   0.2424
+  ],
+  "zmin": -0.1212,
+  "height": 0.2424,
+  "category": "pitcher",
+  "colors": [
+   "blue"
+  ],
+  "aliases": [
+   "jug"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/019_pitcher_base.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.1204
+ },
+ "bleach": {
+  "usd": "bleach.usda",
+  "desc": "bleach bottle",
+  "role": "distractor",
+  "mass": 0.6,
+  "scale": 1.0,
+  "size": [
+   0.1024,
+   0.0677,
+   0.2506
+  ],
+  "zmin": -0.1253,
+  "height": 0.2506,
+  "category": "bleach bottle",
+  "colors": [
+   "white"
+  ],
+  "aliases": [
+   "cleaner",
+   "bottle"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/021_bleach_cleanser.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.125
+ },
+ "drill": {
+  "usd": "drill.usda",
+  "desc": "drill",
+  "role": "distractor",
+  "mass": 0.895,
+  "scale": 1.0,
+  "size": [
+   0.1844,
+   0.1868,
+   0.0572
+  ],
+  "zmin": -0.0286,
+  "height": 0.0572,
+  "category": "drill",
+  "colors": [
+   "orange",
+   "black"
+  ],
+  "aliases": [
+   "power drill"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/035_power_drill.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0271
+ },
+ "wood_block": {
+  "usd": "wood_block.usda",
+  "desc": "wooden block",
+  "role": "distractor",
+  "mass": 0.729,
+  "scale": 1.0,
+  "size": [
+   0.0897,
+   0.2061,
+   0.0908
+  ],
+  "zmin": -0.0454,
+  "height": 0.0908,
+  "category": "wooden block",
+  "colors": [
+   "brown"
+  ],
+  "aliases": [
+   "wood block",
+   "plank"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/036_wood_block.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0446
+ },
+ "xl_clamp": {
+  "usd": "xl_clamp.usda",
+  "desc": "large clamp",
+  "role": "distractor",
+  "mass": 0.202,
+  "scale": 1.0,
+  "size": [
+   0.2026,
+   0.1652,
+   0.0365
+  ],
+  "zmin": -0.0182,
+  "height": 0.0365,
+  "category": "clamp",
+  "colors": [
+   "black"
+  ],
+  "aliases": [
+   "spring clamp"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/052_extra_large_clamp.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0174
+ },
+ "mug": {
+  "usd": "mug.usda",
+  "desc": "red mug",
+  "role": "distractor",
+  "mass": 0.118,
+  "scale": 1.0,
+  "size": [
+   0.117,
+   0.0931,
+   0.0813
+  ],
+  "zmin": -0.0407,
+  "height": 0.0813,
+  "category": "mug",
+  "colors": [
+   "red",
+   "black"
+  ],
+  "aliases": [
+   "cup"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/025_mug.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0403
+ },
+ "bowl": {
+  "usd": "bowl.usda",
+  "desc": "bowl",
+  "role": "container",
+  "mass": 0.147,
+  "scale": 1.0,
+  "size": [
+   0.1612,
+   0.1615,
+   0.055
+  ],
+  "zmin": -0.0275,
+  "height": 0.055,
+  "category": "bowl",
+  "colors": [
+   "red"
+  ],
+  "aliases": [
+   "dish"
+  ],
+  "source": "isaac:YCB/Axis_Aligned/024_bowl.usd",
+  "opening": [
+   0.1246,
+   0.1249
+  ],
+  "floor_h": 0.0027,
+  "depth": 0.0523,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0274
+ },
+ "mug_a": {
+  "usd": "mug_a.usda",
+  "desc": "green mug",
+  "role": "distractor",
+  "mass": 0.3,
+  "scale": 1.0,
+  "size": [
+   0.0923,
+   0.1271,
+   0.091
+  ],
+  "zmin": -0.0455,
+  "height": 0.091,
+  "category": "mug",
+  "colors": [
+   "green",
+   "black"
+  ],
+  "aliases": [
+   "cup",
+   "coffee mug"
+  ],
+  "source": "isaac:Mugs/SM_Mug_A2.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0455
+ },
+ "mug_b": {
+  "usd": "mug_b.usda",
+  "desc": "black mug",
+  "role": "distractor",
+  "mass": 0.3,
+  "scale": 1.0,
+  "size": [
+   0.0925,
+   0.1365,
+   0.0919
+  ],
+  "zmin": -0.046,
+  "height": 0.0919,
+  "category": "mug",
+  "colors": [
+   "black",
+   "grey"
+  ],
+  "aliases": [
+   "cup",
+   "coffee mug"
+  ],
+  "source": "isaac:Mugs/SM_Mug_B1.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0458
+ },
+ "mug_c": {
+  "usd": "mug_c.usda",
+  "desc": "yellow mug",
+  "role": "distractor",
+  "mass": 0.3,
+  "scale": 1.0,
+  "size": [
+   0.0889,
+   0.1277,
+   0.1072
+  ],
+  "zmin": -0.0536,
+  "height": 0.1072,
+  "category": "mug",
+  "colors": [
+   "yellow",
+   "white"
+  ],
+  "aliases": [
+   "cup",
+   "coffee mug"
+  ],
+  "source": "isaac:Mugs/SM_Mug_C1.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0535
+ },
+ "mug_d": {
+  "usd": "mug_d.usda",
+  "desc": "blue mug",
+  "role": "distractor",
+  "mass": 0.3,
+  "scale": 1.0,
+  "size": [
+   0.0888,
+   0.1276,
+   0.1101
+  ],
+  "zmin": -0.0551,
+  "height": 0.1101,
+  "category": "mug",
+  "colors": [
+   "blue"
+  ],
+  "aliases": [
+   "cup",
+   "coffee mug"
+  ],
+  "source": "isaac:Mugs/SM_Mug_D1.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0549
+ },
+ "rubiks_cube": {
+  "usd": "rubiks_cube.usda",
+  "desc": "rubik's cube",
+  "role": "grasp",
+  "mass": 0.025,
+  "scale": 0.5,
+  "size": [
+   0.036,
+   0.036,
+   0.036
+  ],
+  "zmin": -0.018,
+  "height": 0.036,
+  "category": "rubik's cube",
+  "colors": [
+   "multicolored"
+  ],
+  "aliases": [
+   "puzzle cube",
+   "cube"
+  ],
+  "source": "isaac:Rubiks_Cube/rubiks_cube.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.036,
+  "grasp_h": 0.018,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.018,
+  "sim_grasp_width": 0.036
+ },
+ "dex_cube": {
+  "usd": "dex_cube.usda",
+  "desc": "letter cube",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 0.6,
+  "size": [
+   0.036,
+   0.036,
+   0.036
+  ],
+  "zmin": -0.018,
+  "height": 0.036,
+  "category": "letter cube",
+  "colors": [
+   "multicolored"
+  ],
+  "aliases": [
+   "dice",
+   "cube"
+  ],
+  "source": "isaac:Blocks/DexCube/dex_cube_instanceable.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.036,
+  "grasp_h": 0.018,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.018,
+  "sim_grasp_width": 0.036
+ },
+ "multicolor_cube": {
+  "usd": "multicolor_cube.usda",
+  "desc": "multicolored cube",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 0.7,
+  "size": [
+   0.035,
+   0.035,
+   0.035
+  ],
+  "zmin": -0.0175,
+  "height": 0.035,
+  "category": "colorful cube",
+  "colors": [
+   "multicolored"
+  ],
+  "aliases": [
+   "cube"
+  ],
+  "source": "isaac:Blocks/MultiColorCube/multi_color_cube_instanceable.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.035,
+  "grasp_h": 0.0175,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0175,
+  "sim_grasp_width": 0.035
+ },
+ "red_block": {
+  "usd": "red_block.usda",
+  "desc": "red block",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 0.7,
+  "size": [
+   0.0329,
+   0.0329,
+   0.0329
+  ],
+  "zmin": -0.0165,
+  "height": 0.0329,
+  "category": "block",
+  "colors": [
+   "red"
+  ],
+  "aliases": [
+   "cube",
+   "brick"
+  ],
+  "source": "isaac:Blocks/red_block.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.0329,
+  "grasp_h": 0.0165,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0165,
+  "sim_grasp_width": 0.0329
+ },
+ "green_block": {
+  "usd": "green_block.usda",
+  "desc": "green block",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 0.7,
+  "size": [
+   0.0329,
+   0.0329,
+   0.0329
+  ],
+  "zmin": -0.0165,
+  "height": 0.0329,
+  "category": "block",
+  "colors": [
+   "green"
+  ],
+  "aliases": [
+   "cube",
+   "brick"
+  ],
+  "source": "isaac:Blocks/green_block.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.0329,
+  "grasp_h": 0.0165,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0165,
+  "sim_grasp_width": 0.0329
+ },
+ "blue_block": {
+  "usd": "blue_block.usda",
+  "desc": "blue block",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 0.7,
+  "size": [
+   0.0329,
+   0.0329,
+   0.0329
+  ],
+  "zmin": -0.0165,
+  "height": 0.0329,
+  "category": "block",
+  "colors": [
+   "blue"
+  ],
+  "aliases": [
+   "cube",
+   "brick"
+  ],
+  "source": "isaac:Blocks/blue_block.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.0329,
+  "grasp_h": 0.0165,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0165,
+  "sim_grasp_width": 0.0329
+ },
+ "yellow_block": {
+  "usd": "yellow_block.usda",
+  "desc": "yellow block",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 0.7,
+  "size": [
+   0.0329,
+   0.0329,
+   0.0329
+  ],
+  "zmin": -0.0165,
+  "height": 0.0329,
+  "category": "block",
+  "colors": [
+   "yellow"
+  ],
+  "aliases": [
+   "cube",
+   "brick"
+  ],
+  "source": "isaac:Blocks/yellow_block.usd",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.0329,
+  "grasp_h": 0.0165,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0165,
+  "sim_grasp_width": 0.0329
+ },
+ "beaker": {
+  "usd": "beaker.usda",
+  "desc": "beaker",
+  "role": "distractor",
+  "mass": 0.2,
+  "scale": 0.6,
+  "size": [
+   0.0972,
+   0.1073,
+   0.0895
+  ],
+  "zmin": -0.0448,
+  "height": 0.0895,
+  "category": "beaker",
+  "colors": [
+   "white"
+  ],
+  "aliases": [
+   "measuring jug",
+   "jug",
+   "glass"
+  ],
+  "source": "isaac:Beaker/beaker_500ml.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0448
+ },
+ "mac_cheese": {
+  "usd": "mac_cheese.usda",
+  "desc": "mac and cheese box",
+  "role": "distractor",
+  "mass": 0.206,
+  "scale": 1.0,
+  "size": [
+   0.0932,
+   0.1849,
+   0.0415
+  ],
+  "zmin": -0.0208,
+  "height": 0.0415,
+  "category": "mac and cheese box",
+  "colors": [
+   "white",
+   "yellow"
+  ],
+  "aliases": [
+   "food box",
+   "box"
+  ],
+  "source": "isaac:Food/mac_n_cheese.usd",
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0185
+ },
+ "klt_bin": {
+  "usd": "klt_bin.usda",
+  "desc": "bin",
+  "role": "container",
+  "mass": 0.25,
+  "scale": 0.5,
+  "size": [
+   0.0989,
+   0.1483,
+   0.0732
+  ],
+  "zmin": -0.0366,
+  "height": 0.0732,
+  "category": "bin",
+  "colors": [
+   "purple"
+  ],
+  "aliases": [
+   "storage bin",
+   "crate",
+   "box"
+  ],
+  "source": "isaac:KLT_Bin/small_KLT.usd",
+  "opening": [
+   0.09,
+   0.131
+  ],
+  "floor_h": 0.0011,
+  "depth": 0.0721,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0367
+ },
+ "yellow_crate": {
+  "usd": "yellow_crate.usda",
+  "desc": "yellow crate",
+  "role": "container",
+  "mass": 0.15,
+  "scale": 0.25,
+  "size": [
+   0.1504,
+   0.1004,
+   0.0425
+  ],
+  "zmin": -0.0213,
+  "height": 0.0425,
+  "category": "crate",
+  "colors": [
+   "yellow"
+  ],
+  "aliases": [
+   "basket",
+   "tray"
+  ],
+  "source": "isaac:PackingTable/props/SM_Crate_A07_Yellow_01/SM_Crate_A07_Yellow_01.usd",
+  "opening": [
+   0.1436,
+   0.0938
+  ],
+  "floor_h": 0.0018,
+  "depth": 0.0407,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0212
+ },
+ "blue_crate": {
+  "usd": "blue_crate.usda",
+  "desc": "blue crate",
+  "role": "container",
+  "mass": 0.15,
+  "scale": 0.25,
+  "size": [
+   0.1513,
+   0.1013,
+   0.0426
+  ],
+  "zmin": -0.0213,
+  "height": 0.0426,
+  "category": "crate",
+  "colors": [
+   "blue"
+  ],
+  "aliases": [
+   "basket",
+   "tray"
+  ],
+  "source": "isaac:PackingTable/props/SM_Crate_A08_Blue_01/SM_Crate_A08_Blue_01.usd",
+  "opening": [
+   0.145,
+   0.095
+  ],
+  "floor_h": 0.0015,
+  "depth": 0.0411,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0212
+ },
+ "red_peg": {
+  "usd": "red_peg.usda",
+  "desc": "red cylinder",
+  "role": "grasp",
+  "mass": 0.03,
+  "scale": 1.0,
+  "size": [
+   0.032,
+   0.032,
+   0.05
+  ],
+  "zmin": -0.025,
+  "height": 0.05,
+  "category": "cylinder",
+  "colors": [
+   "red"
+  ],
+  "aliases": [
+   "peg",
+   "red cylinder"
+  ],
+  "source": "procedural",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   -0.0
+  ],
+  "grasp_width": 0.032,
+  "grasp_h": 0.025,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.025,
+  "sim_grasp_width": 0.0318
+ },
+ "blue_peg": {
+  "usd": "blue_peg.usda",
+  "desc": "blue cylinder",
+  "role": "grasp",
+  "mass": 0.03,
+  "scale": 1.0,
+  "size": [
+   0.028,
+   0.028,
+   0.07
+  ],
+  "zmin": -0.035,
+  "height": 0.07,
+  "category": "cylinder",
+  "colors": [
+   "blue"
+  ],
+  "aliases": [
+   "peg",
+   "tall cylinder"
+  ],
+  "source": "procedural",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.028,
+  "grasp_h": 0.045,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.035,
+  "sim_grasp_width": 0.0274
+ },
+ "green_hex": {
+  "usd": "green_hex.usda",
+  "desc": "hexagon block",
+  "role": "grasp",
+  "mass": 0.025,
+  "scale": 1.0,
+  "size": [
+   0.0329,
+   0.038,
+   0.03
+  ],
+  "zmin": -0.015,
+  "height": 0.03,
+  "category": "hexagon block",
+  "colors": [
+   "green"
+  ],
+  "aliases": [
+   "hex block",
+   "hexagon"
+  ],
+  "source": "procedural",
+  "close_axis": "x",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.0329,
+  "grasp_h": 0.015,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.015,
+  "sim_grasp_width": 0.0329
+ },
+ "yellow_triangle": {
+  "usd": "yellow_triangle.usda",
+  "desc": "triangle block",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 1.0,
+  "size": [
+   0.033,
+   0.0381,
+   0.03
+  ],
+  "zmin": -0.015,
+  "height": 0.03,
+  "category": "triangle block",
+  "colors": [
+   "yellow"
+  ],
+  "aliases": [
+   "triangle",
+   "wedge"
+  ],
+  "source": "procedural",
+  "close_axis": "x",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.033,
+  "grasp_h": 0.015,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.015,
+  "sim_grasp_width": 0.033
+ },
+ "orange_bar": {
+  "usd": "orange_bar.usda",
+  "desc": "bar",
+  "role": "grasp",
+  "mass": 0.03,
+  "scale": 1.0,
+  "size": [
+   0.024,
+   0.09,
+   0.024
+  ],
+  "zmin": -0.012,
+  "height": 0.024,
+  "category": "bar",
+  "colors": [
+   "orange"
+  ],
+  "aliases": [
+   "stick",
+   "long block"
+  ],
+  "source": "procedural",
+  "close_axis": "x",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.024,
+  "grasp_h": 0.012,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.012,
+  "sim_grasp_width": 0.024
+ },
+ "purple_cube": {
+  "usd": "purple_cube.usda",
+  "desc": "cube",
+  "role": "grasp",
+  "mass": 0.025,
+  "scale": 1.0,
+  "size": [
+   0.035,
+   0.035,
+   0.035
+  ],
+  "zmin": -0.0175,
+  "height": 0.035,
+  "category": "cube",
+  "colors": [
+   "purple"
+  ],
+  "aliases": [
+   "block",
+   "purple block"
+  ],
+  "source": "procedural",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.035,
+  "grasp_h": 0.0175,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0175,
+  "sim_grasp_width": 0.035
+ },
+ "bottle": {
+  "usd": "bottle.usda",
+  "desc": "bottle",
+  "role": "grasp",
+  "mass": 0.08,
+  "scale": 1.0,
+  "size": [
+   0.036,
+   0.036,
+   0.11
+  ],
+  "zmin": -0.055,
+  "height": 0.11,
+  "category": "bottle",
+  "colors": [
+   "blue"
+  ],
+  "aliases": [
+   "small bottle",
+   "water bottle"
+  ],
+  "source": "procedural",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.0318,
+  "grasp_h": 0.085,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.055,
+  "sim_grasp_width": 0.0292
+ },
+ "glue_stick": {
+  "usd": "glue_stick.usda",
+  "desc": "glue stick",
+  "role": "grasp",
+  "mass": 0.04,
+  "scale": 1.0,
+  "size": [
+   0.023,
+   0.023,
+   0.09
+  ],
+  "zmin": -0.045,
+  "height": 0.09,
+  "category": "glue stick",
+  "colors": [
+   "white",
+   "orange"
+  ],
+  "aliases": [
+   "glue"
+  ],
+  "source": "procedural",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   -0.0
+  ],
+  "grasp_width": 0.023,
+  "grasp_h": 0.065,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.045,
+  "sim_grasp_width": 0.023
+ },
+ "sponge": {
+  "usd": "sponge.usda",
+  "desc": "sponge",
+  "role": "grasp",
+  "mass": 0.012,
+  "scale": 1.0,
+  "size": [
+   0.038,
+   0.072,
+   0.025
+  ],
+  "zmin": -0.0125,
+  "height": 0.025,
+  "category": "sponge",
+  "colors": [
+   "yellow",
+   "green"
+  ],
+  "aliases": [
+   "kitchen sponge",
+   "scrubber"
+  ],
+  "source": "procedural",
+  "close_axis": "x",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.038,
+  "grasp_h": 0.0125,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0125,
+  "sim_grasp_width": 0.038
+ },
+ "eraser": {
+  "usd": "eraser.usda",
+  "desc": "eraser",
+  "role": "grasp",
+  "mass": 0.02,
+  "scale": 1.0,
+  "size": [
+   0.022,
+   0.056,
+   0.018
+  ],
+  "zmin": -0.009,
+  "height": 0.018,
+  "category": "eraser",
+  "colors": [
+   "pink"
+  ],
+  "aliases": [
+   "rubber"
+  ],
+  "source": "procedural",
+  "close_axis": "x",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.022,
+  "grasp_h": 0.012,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.009,
+  "sim_grasp_width": 0.022
+ },
+ "spool": {
+  "usd": "spool.usda",
+  "desc": "spool",
+  "role": "grasp",
+  "mass": 0.025,
+  "scale": 1.0,
+  "size": [
+   0.034,
+   0.034,
+   0.04
+  ],
+  "zmin": -0.02,
+  "height": 0.04,
+  "category": "spool",
+  "colors": [
+   "brown",
+   "red"
+  ],
+  "aliases": [
+   "thread spool",
+   "reel"
+  ],
+  "source": "procedural",
+  "close_axis": "y",
+  "grasp_xy": [
+   0.0,
+   -0.0
+  ],
+  "grasp_width": 0.034,
+  "grasp_h": 0.02,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.02,
+  "sim_grasp_width": 0.0299
+ },
+ "toy_brick": {
+  "usd": "toy_brick.usda",
+  "desc": "toy brick",
+  "role": "grasp",
+  "mass": 0.015,
+  "scale": 1.0,
+  "size": [
+   0.032,
+   0.064,
+   0.021
+  ],
+  "zmin": -0.0105,
+  "height": 0.021,
+  "category": "toy brick",
+  "colors": [
+   "green"
+  ],
+  "aliases": [
+   "lego brick",
+   "lego"
+  ],
+  "source": "procedural",
+  "close_axis": "x",
+  "grasp_xy": [
+   0.0,
+   0.0
+  ],
+  "grasp_width": 0.032,
+  "grasp_h": 0.012,
+  "graspable": true,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0105,
+  "sim_grasp_width": 0.032
+ },
+ "cardboard_box": {
+  "usd": "cardboard_box.usda",
+  "desc": "box",
+  "role": "container",
+  "mass": 0.12,
+  "scale": 1.0,
+  "size": [
+   0.14,
+   0.12,
+   0.06
+  ],
+  "zmin": -0.03,
+  "height": 0.06,
+  "category": "box",
+  "colors": [
+   "brown"
+  ],
+  "aliases": [
+   "cardboard box",
+   "open box"
+  ],
+  "source": "procedural",
+  "opening": [
+   0.13,
+   0.11
+  ],
+  "floor_h": 0.005,
+  "depth": 0.055,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.03
+ },
+ "blue_tray": {
+  "usd": "blue_tray.usda",
+  "desc": "tray",
+  "role": "container",
+  "mass": 0.1,
+  "scale": 1.0,
+  "size": [
+   0.17,
+   0.12,
+   0.025
+  ],
+  "zmin": -0.0125,
+  "height": 0.025,
+  "category": "tray",
+  "colors": [
+   "blue"
+  ],
+  "aliases": [
+   "plastic tray"
+  ],
+  "source": "procedural",
+  "opening": [
+   0.158,
+   0.108
+  ],
+  "floor_h": 0.006,
+  "depth": 0.019,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.0125
+ },
+ "plate": {
+  "usd": "plate.usda",
+  "desc": "plate",
+  "role": "container",
+  "mass": 0.12,
+  "scale": 1.0,
+  "size": [
+   0.1442,
+   0.1442,
+   0.016
+  ],
+  "zmin": -0.008,
+  "height": 0.016,
+  "category": "plate",
+  "colors": [
+   "white"
+  ],
+  "aliases": [
+   "dish",
+   "white plate"
+  ],
+  "source": "procedural",
+  "opening": [
+   0.132,
+   0.132
+  ],
+  "floor_h": 0.006,
+  "depth": 0.01,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.008
+ },
+ "bucket": {
+  "usd": "bucket.usda",
+  "desc": "bucket",
+  "role": "container",
+  "mass": 0.08,
+  "scale": 1.0,
+  "size": [
+   0.0903,
+   0.0903,
+   0.07
+  ],
+  "zmin": -0.035,
+  "height": 0.07,
+  "category": "bucket",
+  "colors": [
+   "red"
+  ],
+  "aliases": [
+   "pot",
+   "cup",
+   "red bucket"
+  ],
+  "source": "procedural",
+  "opening": [
+   0.082,
+   0.082
+  ],
+  "floor_h": 0.005,
+  "depth": 0.065,
+  "graspable": false,
+  "rest_ok": true,
+  "rest_upright": true,
+  "rest_z": 0.035
+ }
+}

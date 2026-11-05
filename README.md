@@ -27,7 +27,20 @@ Best recipe: pretrained VLA + 50 % joint-state dropout + grasp/release localisat
 | 10 | 12.7 % | 3 seeds x 50 rollouts (`results/mujoco_fewshot_final.json`) |
 | 20 | 21.3 % | |
 | 50 | 40.7 % | from-scratch baseline 12.7 %; expert ceiling 82.7 % |
-| 100-600 | running | demo-count scaling study (`vla/run_scaling.sh`) |
+
+
+Demo-count scaling (`vla/run_scaling.sh`, `results/scaling.json`; 600-demo pool, expert success ~80 %):
+
+| Demos | Pretrained, best recipe (3 seeds, 150 rollouts) | From scratch (1 seed, 50 rollouts) |
+|---|---|---|
+| 50 | 34.7 % [28, 43] | - |
+| 100 | 50.7 % [43, 59] | 20 % |
+| 200 | 65.3 % [57, 72] | 24 % |
+| 400 | **73.3 %** [66, 80] | 30 % |
+| 600 | 68.0 % [60, 75] | 36 % |
+
+Success rate saturates around 70 % (about 90 % of the expert) from ~300-400 demos; pretraining stays worth
+2-3x at every data size. Reaching the few-shot target (20-50 demos) needs a better model, not more demos.
 
 Isaac Sim 5.1 / Isaac Lab 2.3: a multi-object tabletop with YCB household objects, randomised table tops and a
 node-based trajectory tool for data collection (`isaac_bench/`), plus an evaluation client for the NVIDIA

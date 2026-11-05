@@ -177,7 +177,7 @@ class Tabletop:
         pads = [f"{c}_pad" for c in r.permutation(list(PADS))[: int(r.integers(1, 3))]] if (task == "pad" or r.random() < 0.5) else []
         bowl = task == "bowl" or r.random() < 0.35
         tray = task == "tray" or (not bowl and r.random() < 0.35)
-        mug = r.random() < 0.3
+        distract = [str(d) for d in r.permutation(DISTRACT)[: int(r.integers(0, 3))]]
         info = dict(task=task, obj=obj)
         d = OBJ_META[obj]["desc"]
         if task == "pad":
@@ -206,8 +206,8 @@ class Tabletop:
         for o in present:
             if o != obj:
                 put(o, 0.45 * max(OBJ_META[o]["size"][:2]))
-        if mug:
-            put("mug", 0.055)
+        for dname in distract:
+            put(dname, 0.45 * max(OBJ_META[dname]["size"][:2]))
         present = [o for o in present if o in layout]
         info.update(text=text, layout=layout, present=present, pads=[p for p in pads if p in layout], tray="tray" in layout, bowl="bowl" in layout,
                     table_mat=int(r.integers(len(self.table_mats))))

@@ -27,6 +27,8 @@ ap.add_argument("--out", default="", help="dataset dir (bench format); empty = d
 ap.add_argument("--video", default="", help="mp4 path for an annotated visualisation of env 0")
 ap.add_argument("--video_eps", type=int, default=1, help="number of episodes (env 0) in the video")
 ap.add_argument("--markers", type=int, default=1, help="draw node markers in the video (never in recorded data)")
+ap.add_argument("--tasks", default="", help="comma list overriding the spec's task types (e.g. hold one out for few-shot tests)")
+ap.add_argument("--only_success", type=int, default=1, help="with --out: keep only episodes that pass the task's success check")
 ap.add_argument("--speed", type=float, default=0.18, help="m/s of the grasp centre during moves")
 a = ap.parse_args()
 app = AppLauncher(headless=True, enable_cameras=True).app
@@ -125,13 +127,13 @@ class TrajRunner:
                         pj, qj = d.body_pos_w[0, self.kin.ji] - o, d.body_quat_w[0, self.kin.ji]
                         fx = pb + mu.quat_apply(qb[None], self.kin.tcp[:1])[0]; mv = pj + mu.quat_apply(qj[None], self.kin.mtip[:1])[0]
                         R = mu.matrix_from_quat(qb[None])[0].cpu().numpy()
-                        cube = self.env.pos("red_cube")[0]; mid = ((fx + mv) / 2).cpu().numpy()
+                        cube = self.env.pos(self.env.ep[0]["obj"])[0]; mid = ((fx + mv) / 2).cpu().numpy()
                         print("DBG node", st["node"], "target", np.round(self.p1[i], 3).tolist(), "mid", np.round(mid, 3).tolist(), "fixed", np.round(fx.cpu().numpy(), 3).tolist(),
                               "moving", np.round(mv.cpu().numpy(), 3).tolist(), "cube", np.round(cube, 3).tolist(), "cube-mid in gripper frame", np.round(R.T @ (cube - mid), 3).tolist(),
                               "gx", np.round(R[:, 0], 2).tolist(), "gy", np.round(R[:, 1], 2).tolist(), "gz", np.round(R[:, 2], 2).tolist(), flush=True)
             elif self.phase[i] == "settle":
                 self.s[i] += 1; pos_des[i] = self.p1[i]
-                if (self.s[i] >= SETTLE_T and self.err[i] < 0.004) or self.s[i] >= 30:
+                if (self.s[i] >= SETTLE_T and self.err[i] < 0.004) or self.s[i] >= 60:
                     self.k[i] += 1; self.phase[i], self.s[i] = "grip", 0
                     if self.k[i] >= len(steps):
                         self.done[i] = True
@@ -182,6 +184,8 @@ def project(env, pts_local):
 
 def main():
     spec = json.load(open(a.spec))
+    if a.tasks:
+        spec["tasks"] = a.tasks.split(",")
     rng = np.random.default_rng(a.seed + 11)
     req = spec.get("scene", {}).get("require", [])
     env = tt.Tabletop(num_envs=a.num_envs, seed=spec.get("scene", {}).get("seed", a.seed), task_mix=tuple(spec.get("tasks") or tt.TASKS))
@@ -192,10 +196,12 @@ def main():
         while True:
             E = env.sample_episode()
             if all(o in E["layout"] for o in req) and (not spec.get("tasks") or E["task"] in spec["tasks"]):
+                if spec.get("force_obj") and E["obj"] != spec["force_obj"]:
+                    continue
                 E["text"] = spec["text"] if spec.get("text") and spec["text"] != "$text" else E["text"]; return E
 
     frames, rows, acts, meta = [], [], {}, []
-    n_done = 0
+    n_done, attempts = 0, 0
     import pandas as pd
     while n_done < a.episodes:
         eps = env.reset(episodes=[sample_ok() for _ in range(env.n)])
@@ -205,7 +211,12 @@ def main():
         runner.reset()
         buf = [dict(S=[], A=[], F=[]) for _ in range(env.n)]
         node_ids = sorted(spec["nodes"], key=lambda x: int(x) if x.isdigit() else x)
+        max_bottom = np.full(env.n, -1.0)
         while not runner.done.all() and env.t.max() < 60 * tt.CTRL_HZ:
+            for i in range(env.n):
+                E_ = env.ep[i]
+                if E_["obj"] in tt.OBJ_META:
+                    max_bottom[i] = max(max_bottom[i], env.pos(E_["obj"])[i][2] + tt.OBJ_META[E_["obj"]]["zmin"])
             cmd = runner.step()
             S = env.state()
             rec = env.t % 3 == 0
@@ -245,8 +256,20 @@ def main():
             if n_done >= a.episodes:
                 break
             E = env.ep[i]
-            meta.append(dict(ep=n_done, text=E["text"], success_check=bool(succ[i]), task=E["task"], obj=E["obj"], steps=int(env.t[i]),
-                             layout={k: [float(v[0][0]), float(v[0][1]), float(v[1])] for k, v in E["layout"].items()}))
+            p_end = env.pos(E["obj"])[i]; q_end = env.quat(E["obj"])[i]
+            tgt = runner.sub(i, "$target") if E["task"] != "pick" else None
+            tgt_xy = (env.tray_center(i)[0] if tgt == "tray" else env.pos(tgt)[i][:2]) if tgt else None
+            up_z = 1 - 2 * (q_end[1] ** 2 + q_end[2] ** 2)          # z-component of the object's up axis (1 = upright)
+            rec = dict(ep=n_done, text=E["text"], success_check=bool(succ[i]), task=E["task"], obj=E["obj"], steps=int(env.t[i]),
+                       lifted_cm=round(100 * max_bottom[i], 1), end_bottom_cm=round(100 * (p_end[2] + tt.OBJ_META[E["obj"]]["zmin"]), 1),
+                       end_dist_cm=round(100 * float(np.linalg.norm(p_end[:2] - tgt_xy)), 1) if tgt else None, upright=round(float(up_z), 2),
+                       jaw=round(float(env.state()[i, 5]), 2),
+                       layout={k: [float(v[0][0]), float(v[0][1]), float(v[1])] for k, v in E["layout"].items()})
+            attempts += 1
+            if a.out and a.only_success and not succ[i]:
+                print(json.dumps(rec | {"layout": None, "ep": None, "kept": False}), flush=True)
+                continue                                    # failed attempt: not recorded, not counted
+            meta.append(rec)
             if a.out:
                 e = n_done
                 acts[f"ep{e}_action"] = np.stack(buf[i]["A"]); acts[f"ep{e}_state"] = np.stack(buf[i]["S"])
@@ -273,7 +296,7 @@ def main():
         F.to_parquet(os.path.join(a.out, "frames", name + ".parquet"))
         np.savez_compressed(os.path.join(a.out, "actions", name + ".npz"), **acts)
         json.dump([name.replace("__", "/")], open(os.path.join(a.out, "repos.json"), "w"))
-        json.dump(dict(spec=spec, episodes=meta), open(os.path.join(a.out, "episodes.json"), "w"), indent=1)
+        json.dump(dict(spec=spec, episodes=meta, attempts=attempts, kept=len(meta)), open(os.path.join(a.out, "episodes.json"), "w"), indent=1)
         print("saved", a.out, flush=True)
 
 

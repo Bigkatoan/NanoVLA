@@ -107,14 +107,15 @@ class FSData(torch.utils.data.Dataset):
 
 def make_model(cond, dev):
     vp = os.environ.get("VLA_CKPT", os.path.join(CK, "vla/vla.pt"))
-    vs = torch.load(vp, map_location=dev) if cond == "A" else {"n_emb": 1300}
+    vs = torch.load(vp, map_location=dev, weights_only=False) if cond == "A" else {"n_emb": 1300}   # own checkpoints (store numpy stats)
     model, tok = build_model(vs["n_emb"], os.path.join(CK, "align/align.pt"), dev)
     new_row = vs["n_emb"] - 1
     if cond.startswith("A"):
         model.load_state_dict(vs["model"])
-        with torch.no_grad():
-            unk = vs.get("unk_row")
-            model.emb.weight[new_row] = model.emb.weight[unk] if unk is not None else model.emb.weight[: new_row - 63].mean(0)
+        if not vs.get("keep_row"):      # checkpoints adapted to this robot (e.g. vla_isaac) keep their learned row
+            with torch.no_grad():
+                unk = vs.get("unk_row")
+                model.emb.weight[new_row] = model.emb.weight[unk] if unk is not None else model.emb.weight[: new_row - 63].mean(0)
     elif cond == "C":
         model.v = VisionViT(drop_path=0.05).to(dev)
         model.t = TextEncoder(model.t.tok.num_embeddings, max_len=model.t.pos.shape[1]).to(dev)

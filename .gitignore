@@ -237,3 +237,4 @@ isaac_bench/assets/ycb/Materials/
 *.npz
 *.pt
 *.parquet
+isaac_bench/.gen_snapshot/

@@ -23,6 +23,11 @@ TEX = sorted(glob.glob(os.path.expanduser("~/VLA/isaac_bench/textures/*.png")))
 CTRL_HZ, PHYS_HZ = 30, 120
 BASE_X = -0.05                   # workshop SO101_CFG mounts the base at x=-0.05
 RES = (120, 160)
+CAM_SCALE = int(os.environ.get("TABLETOP_CAM_SCALE", 2))           # render at RES * scale (2 -> 320x240; 4 -> 640x480 for Cosmos export)
+CAM_EXTRA = bool(int(os.environ.get("TABLETOP_CAM_EXTRA", 0)))
+DR = bool(int(os.environ.get("TABLETOP_DR", 1)))                    # domain randomisation (lights, HDRI, camera pose, physics)
+HDRI = sorted(glob.glob(os.path.expanduser("~/VLA/third_party/so101_workshop/source/sim_to_real_so101/assets/hdri/*.exr")))
+FRONT_POS, FRONT_ROT = (0.50, 0.0, 0.36), (0.65328, 0.27060, 0.27060, 0.65328)     # also render depth + instance segmentation (Cosmos controls)
 HOME = np.array([0.0, -0.6, -0.07, 1.51, -1.57, -0.1])   # workshop rest pose with pan centred, gripper pointing down
 
 import json as _json
@@ -38,7 +43,12 @@ PAD_E = 0.08
 TRAY_SCALE = 0.6                 # workshop tray 0.20 x 0.16 x 0.03 -> 0.12 x 0.096 x 0.018
 TRAY_HALF = (0.10 * TRAY_SCALE, 0.08 * TRAY_SCALE)
 OBJS = GRASP
-TASKS = ("pick", "pad", "tray", "bowl")
+TASKS = ("pick", "pad", "tray", "bowl", "push", "rotate", "rel", "topple")
+# direction words in the robot frame (x forward / away from the robot, y to the robot's left)
+DIRS = {"left": (0.0, 1.0), "right": (0.0, -1.0), "forward": (1.0, 0.0), "back": (-1.0, 0.0)}
+REL = {"to the left of": (0.0, 1.0), "to the right of": (0.0, -1.0), "behind": (1.0, 0.0), "in front of": (-1.0, 0.0)}
+ELONGATED = lambda m: max(m["size"][:2]) > 1.4 * min(m["size"][:2])      # rotation is visible
+TALL = lambda m: m["height"] > 0.06                                       # can be knocked over
 PARK = lambda i: (-1.0, -0.6 + 0.15 * i)   # off-table parking spots (local xy), on the floor
 FITS = {"tray": lambda m: max(m["size"][:2]) < 0.125, "bowl": lambda m: max(m["size"][:2]) < 0.15}
 
@@ -69,12 +79,16 @@ def scene_cfg(num_envs, spacing=3.0):
             rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True, disable_gravity=True),
             collision_props=sim_utils.CollisionPropertiesCfg(collision_enabled=False)), init_state=RigidObjectCfg.InitialStateCfg(pos=(-1.0, 0.4, 0.001)))
 
+    CAM_TYPES = ["rgb", "distance_to_image_plane", "instance_segmentation_fast"] if CAM_EXTRA else ["rgb"]
+
     @configclass
     class Cfg(InteractiveSceneCfg):
         ground = AssetBaseCfg(prim_path="/World/ground", spawn=sim_utils.GroundPlaneCfg(color=(0.3, 0.3, 0.32)),
                               init_state=AssetBaseCfg.InitialStateCfg(pos=(0, 0, -0.75)))
         sky = AssetBaseCfg(prim_path="/World/sky", spawn=sim_utils.DomeLightCfg(intensity=220.0, texture_file=f"{WS_ASSETS}/hdri/studio_small_03_1k.exr",
                                                                                 visible_in_primary_ray=True, enable_color_temperature=True, color_temperature=6500.0))
+        lamp = AssetBaseCfg(prim_path="{ENV_REGEX_NS}/lamp", spawn=sim_utils.SphereLightCfg(intensity=3000.0, radius=0.15, color=(1.0, 0.95, 0.9)),
+                            init_state=AssetBaseCfg.InitialStateCfg(pos=(0.15, 0.0, 0.9)))
         sun = AssetBaseCfg(prim_path="/World/sun", spawn=sim_utils.DistantLightCfg(intensity=700.0, angle=3.0),
                            init_state=AssetBaseCfg.InitialStateCfg(rot=(0.93, 0.18, -0.30, 0.10)))
         table = AssetBaseCfg(prim_path="{ENV_REGEX_NS}/table", spawn=sim_utils.CuboidCfg(
@@ -89,10 +103,10 @@ def scene_cfg(num_envs, spacing=3.0):
         tray = RigidObjectCfg(prim_path="{ENV_REGEX_NS}/tray", spawn=sim_utils.UsdFileCfg(
             usd_path=f"{WS_ASSETS}/usd/tray.usda", scale=(TRAY_SCALE,) * 3, mass_props=sim_utils.MassPropertiesCfg(mass=0.15)),
             init_state=RigidObjectCfg.InitialStateCfg(pos=(-1.0, 0.6, 0.02)))
-        front = TiledCameraCfg(prim_path="{ENV_REGEX_NS}/front_cam", data_types=["rgb"], width=RES[1] * 2, height=RES[0] * 2,
-                               offset=TiledCameraCfg.OffsetCfg(pos=(0.50, 0.0, 0.36), rot=(0.65328, 0.27060, 0.27060, 0.65328), convention="opengl"),
+        front = TiledCameraCfg(prim_path="{ENV_REGEX_NS}/front_cam", data_types=CAM_TYPES, colorize_instance_segmentation=True, width=RES[1] * CAM_SCALE, height=RES[0] * CAM_SCALE,
+                               offset=TiledCameraCfg.OffsetCfg(pos=FRONT_POS, rot=FRONT_ROT, convention="opengl"),
                                spawn=sim_utils.PinholeCameraCfg(focal_length=13.5, horizontal_aperture=20.955, clipping_range=(0.01, 5.0)))
-        wrist = TiledCameraCfg(prim_path="{ENV_REGEX_NS}/Robot/gripper/gripper_cam", data_types=["rgb"], width=RES[1] * 2, height=RES[0] * 2,
+        wrist = TiledCameraCfg(prim_path="{ENV_REGEX_NS}/Robot/gripper/gripper_cam", data_types=CAM_TYPES, colorize_instance_segmentation=True, width=RES[1] * CAM_SCALE, height=RES[0] * CAM_SCALE,
                                offset=TiledCameraCfg.OffsetCfg(pos=(-0.005, 0.06, -0.062), rot=(0.92388, -0.38268, 0.0, 0.0), convention="opengl"),
                                spawn=sim_utils.PinholeCameraCfg(focal_length=13.5, horizontal_aperture=20.955, clipping_range=(0.005, 5.0)))
 
@@ -152,6 +166,14 @@ class Tabletop:
         self.sim.reset()
         self._make_skins(num_envs)
         self.robot = self.scene["robot"]
+        self._joint_damp0 = self.robot.data.joint_damping.clone()
+        self._joint_fric0 = self.robot.data.joint_friction_coeff.clone() if hasattr(self.robot.data, "joint_friction_coeff") else None
+        if DR and HDRI:   # the dome light is shared by all envs: one HDRI + intensity per run (varies across data chunks)
+            from pxr import Sdf, UsdLux
+            dome = UsdLux.DomeLight(self.stage.GetPrimAtPath("/World/sky"))
+            hd = HDRI[int(np.random.default_rng(seed + 77).integers(len(HDRI)))]
+            dome.GetTextureFileAttr().Set(Sdf.AssetPath(hd)); dome.GetIntensityAttr().Set(float(np.random.default_rng(seed + 78).uniform(120, 420)))
+            self.hdri = os.path.basename(hd)
         self.objs = {k: self.scene[k] for k in GRASP + CONTAINERS + DISTRACT + ["tray"] + [f"{c}_pad" for c in PADS]}
         self.origins = self.scene.env_origins
         self.rng = np.random.default_rng(seed)
@@ -163,14 +185,25 @@ class Tabletop:
 
     # ---------------------------------------------------------------- episode sampling
     def sample_episode(self):
+        """sample a feasible episode (task, objects, layout, instruction); rejection sampling in a loop"""
+        for _ in range(5000):
+            E = self._sample_once()
+            if E is not None:
+                return E
+        raise RuntimeError(f"no feasible episode for tasks {self.task_mix}")
+
+    def _sample_once(self):
         r = self.rng
         task = str(r.choice(self.task_mix))
         pool = list(GRASP); r.shuffle(pool)
         present = pool[: int(r.integers(2, 5))]
-        if task in FITS:   # the target object must fit in the container
-            ok = [o for o in present if FITS[task](OBJ_META[o])]
+        need = {"rotate": ELONGATED, "topple": TALL}.get(task) or FITS.get(task)
+        if need:   # the target object must suit the task (fits the container / elongated / tall)
+            ok = [o for o in present if need(OBJ_META[o])]
             if not ok:
-                return self.sample_episode()
+                ok = [o for o in GRASP if need(OBJ_META[o])]
+                present = [ok_o for ok_o in [str(r.choice(ok))]] + present[:-1]
+                ok = [present[0]]
             obj = str(r.choice(ok))
         else:
             obj = str(r.choice(present))
@@ -178,6 +211,8 @@ class Tabletop:
         bowl = task == "bowl" or r.random() < 0.35
         tray = task == "tray" or (not bowl and r.random() < 0.35)
         distract = [str(d) for d in r.permutation(DISTRACT)[: int(r.integers(0, 3))]]
+        if "soup_can" in present:                 # two soup cans would make "the soup can" ambiguous
+            distract = [d_ for d_ in distract if d_ != "big_soup_can"]
         info = dict(task=task, obj=obj)
         d = OBJ_META[obj]["desc"]
         if task == "pad":
@@ -186,6 +221,15 @@ class Tabletop:
             text = f"put the {d} in the tray"
         elif task == "bowl":
             text = f"put the {d} in the bowl"
+        elif task == "push":
+            dname_ = str(r.choice(list(DIRS))); info["dir"] = DIRS[dname_]; info["push_z"] = min(0.4 * OBJ_META[obj]["height"], 0.022)
+            text = f"push the {d} {dname_}" if dname_ in ("left", "right") else f"push the {d} {'away from you' if dname_ == 'forward' else 'toward you'}"
+        elif task == "topple":
+            info["push_z"] = 0.8 * OBJ_META[obj]["height"]; text = f"knock over the {d}"      # direction: away from the robot (set after layout)
+        elif task == "rotate":
+            text = str(r.choice([f"rotate the {d} by 90 degrees", f"turn the {d} sideways", f"rotate the {d}"]))
+        elif task == "rel":
+            info["rel"] = str(r.choice(list(REL))); text = None                                 # reference object chosen after layout
         else:
             text = f"pick up the {d}"
         layout, placed = {}, []
@@ -202,17 +246,44 @@ class Tabletop:
             put("tray", 0.075, 0.19, 0.25, 0.9)
         for p in pads:
             put(p, PAD_E * 0.65)
-        put(obj, 0.45 * max(OBJ_META[obj]["size"][:2]), 0.17, 0.25, 0.8)   # target object first, well inside the reach
+        if task == "topple":   # it is pushed away from the robot: start closer
+            put(obj, 0.45 * max(OBJ_META[obj]["size"][:2]), 0.15, 0.20, 0.8)
+        else:
+            put(obj, 0.45 * max(OBJ_META[obj]["size"][:2]), 0.17, 0.25, 0.8)   # target object first, well inside the reach
+        if obj in layout and task in ("push", "topple"):
+            p0 = layout[obj][0]
+            if task == "topple":
+                u = p0 - np.array([BASE_X, 0.0]); info["dir"] = tuple(u / np.linalg.norm(u))
+            u = np.array(info["dir"])
+            ext = 0.5 * max(OBJ_META[obj]["size"][:2]) + 0.012
+            info["push_len"] = 0.06 if task == "topple" else 0.10
+            end = p0 + info["push_len"] * u; behind = p0 - (ext + 0.03) * u
+            reach = lambda q: 0.11 < np.linalg.norm(q - np.array([BASE_X, 0.0])) < 0.31
+            if not (reach(end) and reach(behind)):
+                return None
+            placed.append((end, 0.04)); placed.append((behind, 0.03))    # keep the push corridor free
         for o in present:
             if o != obj:
                 put(o, 0.45 * max(OBJ_META[o]["size"][:2]))
         for dname in distract:
             put(dname, 0.45 * max(OBJ_META[dname]["size"][:2]))
         present = [o for o in present if o in layout]
+        if obj not in layout:
+            return None
+        if task == "rel":   # reference object: any other item on the table; target point next to it on the requested side
+            refs = [k for k in layout if k != obj and (k in OBJ_META)]
+            if not refs:
+                return None
+            ref = str(r.choice(refs)); u = np.array(REL[info["rel"]])
+            half = 0.5 * max(OBJ_META[ref]["size"][:2]) + 0.5 * max(OBJ_META[obj]["size"][:2]) + 0.02
+            tgt = layout[ref][0] + u * half
+            if not (0.14 < np.linalg.norm(tgt - np.array([BASE_X, 0.0])) < 0.29) or any(np.linalg.norm(tgt - q) < 0.035 for q, _ in placed if not np.allclose(q, layout[ref][0]) and not np.allclose(q, layout[obj][0])):
+                return None
+            info.update(ref=ref, rel_xy=tuple(tgt)); text = f"put the {d} {info['rel']} the {OBJ_META[ref]['desc']}"
         info.update(text=text, layout=layout, present=present, pads=[p for p in pads if p in layout], tray="tray" in layout, bowl="bowl" in layout,
                     table_mat=int(r.integers(len(self.table_mats))))
         ok = obj in layout and (task != "pad" or info["pad"] in layout) and (task != "tray" or info["tray"]) and (task != "bowl" or info["bowl"])
-        return info if ok else self.sample_episode()
+        return info if ok else None
 
     def reset(self, env_ids=None, episodes=None, settle=20):
         torch = self.torch
@@ -240,11 +311,57 @@ class Tabletop:
         import time as _t; _t0 = _t.time()
         for i, E in zip(ids, episodes):
             self._show_skin(i, E["table_mat"])
+        if DR:
+            self._randomize(ids, episodes)
             self.ep[i] = E; self.t[i] = 0
         for _ in range(settle):
             self._phys(render=False)
         self._last_reset_s = _t.time() - _t0
+        for i, E in zip(ids, episodes):
+            E["p0"] = tuple(map(float, E["layout"][E["obj"]][0])); E["yaw0"] = float(E["layout"][E["obj"]][1])
         return episodes
+
+    def _randomize(self, ids, episodes):
+        """per-episode domain randomisation of env `ids`; the sampled values are stored in E["dr"]"""
+        torch = self.torch
+        from pxr import Gf, UsdLux
+        r = self.rng
+        cams = self.scene["front"]
+        for i, E in zip(ids, episodes):
+            dr = E.setdefault("dr", {})
+            # lamp: intensity, colour temperature (approx. blackbody tint), position over the table
+            kel = float(r.uniform(2700, 7500)); inten = float(r.uniform(800, 9000)); lp = (float(r.uniform(-0.2, 0.5)), float(r.uniform(-0.5, 0.5)), float(r.uniform(0.6, 1.2)))
+            t = (kel - 2700) / 4800; col = (1.0, 0.78 + 0.2 * t, 0.55 + 0.45 * t)
+            prim = self.stage.GetPrimAtPath(f"/World/envs/env_{i}/lamp")
+            lt = UsdLux.SphereLight(prim); lt.GetIntensityAttr().Set(inten); lt.GetColorAttr().Set(Gf.Vec3f(*col))
+            from pxr import UsdGeom
+            xf = UsdGeom.Xformable(prim); ops = {o.GetOpName(): o for o in xf.GetOrderedXformOps()}
+            (ops.get("xformOp:translate") or xf.AddTranslateOp()).Set(Gf.Vec3d(*lp))
+            dr.update(lamp_K=round(kel), lamp_I=round(inten), lamp_pos=[round(v, 2) for v in lp])
+            # front camera pose jitter (+-2 cm, +-3 deg)
+            dp = r.normal(0, 0.012, 3).clip(-0.02, 0.02); ang = r.normal(0, 0.03, 3).clip(-0.052, 0.052)
+            from scipy.spatial.transform import Rotation as Rot
+            q0 = Rot.from_quat([FRONT_ROT[1], FRONT_ROT[2], FRONT_ROT[3], FRONT_ROT[0]]); q = (Rot.from_rotvec(ang) * q0).as_quat()
+            pos = torch.tensor([[FRONT_POS[0] + dp[0], FRONT_POS[1] + dp[1], FRONT_POS[2] + dp[2]]], device=self.dev, dtype=torch.float32) + self.origins[i:i + 1]
+            cams.set_world_poses(pos, torch.tensor([[q[3], q[0], q[1], q[2]]], device=self.dev, dtype=torch.float32), env_ids=torch.tensor([i], device=self.dev), convention="opengl")
+            dr.update(cam_dp=[round(float(v), 3) for v in dp], cam_rot=[round(float(v), 3) for v in ang])
+        # physics: per-object mass and friction, robot joint friction / damping (PhysX views, CPU tensors)
+        idx = torch.tensor(ids, dtype=torch.int32)
+        for name in GRASP + DISTRACT + CONTAINERS:
+            o = self.objs[name]; view = o.root_physx_view
+            m = view.get_masses().clone(); scale = torch.tensor(r.uniform(0.7, 1.3, len(ids)), dtype=m.dtype)
+            m[idx.long()] = OBJ_META[name]["mass"] * scale[:, None]; view.set_masses(m, idx)
+            mp = view.get_material_properties().clone(); mu = torch.tensor(r.uniform(0.6, 1.2, len(ids)), dtype=mp.dtype)
+            mp[idx.long(), :, 0] = mu[:, None]; mp[idx.long(), :, 1] = 0.9 * mu[:, None]; view.set_material_properties(mp, idx)
+            for k, (i, E) in enumerate(zip(ids, episodes)):
+                if name == E["obj"]:
+                    E["dr"].update(obj_mass_scale=round(float(scale[k]), 2), obj_mu=round(float(mu[k]), 2))
+        jf = self.robot.data.joint_friction_coeff.clone() if hasattr(self.robot.data, "joint_friction_coeff") else None
+        if jf is not None:
+            fr = torch.tensor(r.uniform(0.0, 0.05, (len(ids), jf.shape[1])), device=self.dev, dtype=jf.dtype)   # nominal is 0: add a little
+            self.robot.write_joint_friction_coefficient_to_sim(self._joint_fric0[ids] + fr, env_ids=torch.tensor(ids, device=self.dev))
+        dmp = torch.tensor(r.uniform(0.8, 1.2, (len(ids), self.robot.num_joints)), device=self.dev, dtype=torch.float32)
+        self.robot.write_joint_damping_to_sim(self._joint_damp0[ids] * dmp, env_ids=torch.tensor(ids, device=self.dev))
 
     def _make_skins(self, num_envs):
         """one thin visual-only table-top skin per texture per env, material bound once; episodes toggle visibility"""
@@ -296,6 +413,18 @@ class Tabletop:
             out.append(x.permute(0, 2, 3, 1).clamp(0, 255).byte().cpu().numpy())
         return out
 
+    def cosmos_frames(self, i):
+        """high-res RGB, depth (uint8, near=bright) and colourised instance segmentation of env i, both cameras"""
+        out = {}
+        for cam in ("front", "wrist"):
+            o = self.scene[cam].data.output
+            rgb = o["rgb"][i, ..., :3].cpu().numpy().astype(np.uint8)
+            d = o["distance_to_image_plane"][i, ..., 0].cpu().numpy()
+            d = np.nan_to_num(d, nan=2.0, posinf=2.0); dn = (255 * np.clip((1.2 - d) / (1.2 - 0.03), 0, 1)).astype(np.uint8)
+            seg = o["instance_segmentation_fast"][i, ..., :3].cpu().numpy().astype(np.uint8)
+            out[cam] = (rgb, np.repeat(dn[..., None], 3, -1), seg)
+        return out
+
     def pos(self, name):
         o = self.objs[name]
         return (o.data.root_pos_w - self.origins).cpu().numpy()
@@ -337,6 +466,19 @@ class Tabletop:
                 d = p[:2] - c; cy, sy = math.cos(yaw), math.sin(yaw)
                 loc = np.array([cy * d[0] + sy * d[1], -sy * d[0] + cy * d[1]])
                 out[i] = np.all(np.abs(loc) < np.array(TRAY_HALF) - 0.005) and bottom < 0.02 and opened and vel < 0.05
+            elif E["task"] == "push":
+                u = np.array(E["dir"]); dp = p[:2] - np.array(E["p0"])
+                out[i] = dp @ u > 0.06 and abs(dp @ np.array([-u[1], u[0]])) < 0.05 and bottom < 0.02 and vel < 0.05
+            elif E["task"] == "topple":
+                q = self.quat(E["obj"])[i]; up = 1 - 2 * (q[1] ** 2 + q[2] ** 2)
+                out[i] = up < 0.4 and vel < 0.05
+            elif E["task"] == "rotate":
+                q = self.quat(E["obj"])[i]; up = 1 - 2 * (q[1] ** 2 + q[2] ** 2); yaw = 2 * math.atan2(q[3], q[0])
+                dy = abs((yaw - E["yaw0"] + math.pi / 2) % math.pi - math.pi / 2)     # mod 180: elongated objects are symmetric
+                out[i] = math.radians(55) < dy and up > 0.8 and bottom < 0.01 and opened and vel < 0.05
+            elif E["task"] == "rel":
+                d_ = np.linalg.norm(p[:2] - np.array(E["rel_xy"]))
+                out[i] = d_ < 0.045 and bottom < 0.015 and opened and vel < 0.05
             elif E["task"] == "bowl":
                 d = np.linalg.norm(p[:2] - self.pos("bowl")[i, :2])
                 out[i] = d < 0.06 and bottom < 0.04 and opened and vel < 0.05

@@ -1,0 +1,87 @@
+{
+  "text": "$text",
+  "tasks": [
+    "rotate"
+  ],
+  "nodes": {
+    "1": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.07
+      ],
+      "yaw": "auto"
+    },
+    "2": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.0
+      ],
+      "yaw": "auto"
+    },
+    "3": {
+      "rel_prev": [
+        0,
+        0,
+        0.025
+      ]
+    },
+    "4": {
+      "rel_prev": [
+        0,
+        0,
+        0.0
+      ],
+      "yaw_rel": "auto90"
+    },
+    "5": {
+      "rel_prev": [
+        0,
+        0,
+        -0.022
+      ]
+    },
+    "6": {
+      "rel_prev": [
+        0,
+        0,
+        0.08
+      ]
+    }
+  },
+  "trajectory": [
+    {
+      "node": "1",
+      "gripper": "open"
+    },
+    {
+      "node": "2",
+      "gripper": "open"
+    },
+    {
+      "node": "3",
+      "gripper": "close",
+      "retry": {
+        "if_not_lifted": "$obj",
+        "goto": 0,
+        "max": 2,
+        "min_lift": 0.012
+      }
+    },
+    {
+      "node": "4",
+      "gripper": "close"
+    },
+    {
+      "node": "5",
+      "gripper": "close"
+    },
+    {
+      "node": "6",
+      "gripper": "open"
+    }
+  ]
+}

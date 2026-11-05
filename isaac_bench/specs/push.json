@@ -1,0 +1,60 @@
+{
+  "text": "$text",
+  "tasks": [
+    "push",
+    "topple"
+  ],
+  "nodes": {
+    "1": {
+      "obj": "$obj",
+      "dir_offset": [
+        "-ext - 0.03",
+        0
+      ],
+      "z": 0.1,
+      "yaw": "perp_dir"
+    },
+    "2": {
+      "obj": "$obj",
+      "dir_offset": [
+        "-ext",
+        0
+      ],
+      "z": "push",
+      "yaw": "perp_dir"
+    },
+    "3": {
+      "obj": "$obj",
+      "dir_offset": [
+        "-ext + L + 0.01",
+        0
+      ],
+      "z": "push"
+    },
+    "4": {
+      "rel_prev": [
+        0,
+        0,
+        0.08
+      ]
+    }
+  },
+  "trajectory": [
+    {
+      "node": "1",
+      "gripper": "close"
+    },
+    {
+      "node": "2",
+      "gripper": "close"
+    },
+    {
+      "node": "3",
+      "gripper": "close"
+    },
+    {
+      "node": "4",
+      "gripper": "close"
+    }
+  ]
+}

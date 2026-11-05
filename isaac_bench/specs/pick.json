@@ -1,14 +1,54 @@
 {
   "text": "$text",
-  "tasks": ["pick"],
+  "tasks": [
+    "pick"
+  ],
   "nodes": {
-    "1": {"obj": "$obj", "offset": [0, 0, 0.07], "yaw": "auto"},
-    "2": {"obj": "$obj", "offset": [0, 0, 0.0], "yaw": "auto"},
-    "3": {"obj": "$obj", "offset": [0, 0, 0.10]}
+    "1": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.07
+      ],
+      "yaw": "auto"
+    },
+    "2": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.0
+      ],
+      "yaw": "auto"
+    },
+    "3": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.1
+      ]
+    }
   },
   "trajectory": [
-    {"node": "1", "gripper": "open"},
-    {"node": "2", "gripper": "open"},
-    {"node": "3", "gripper": "close"}
+    {
+      "node": "1",
+      "gripper": "open"
+    },
+    {
+      "node": "2",
+      "gripper": "open"
+    },
+    {
+      "node": "3",
+      "gripper": "close",
+      "retry": {
+        "if_not_lifted": "$obj",
+        "goto": 0,
+        "max": 2,
+        "min_lift": 0.03
+      }
+    }
   ]
 }

@@ -27,8 +27,10 @@ ap.add_argument("--out", default="", help="dataset dir (bench format); empty = d
 ap.add_argument("--video", default="", help="mp4 path for an annotated visualisation of env 0")
 ap.add_argument("--video_eps", type=int, default=1, help="number of episodes (env 0) in the video")
 ap.add_argument("--markers", type=int, default=1, help="draw node markers in the video (never in recorded data)")
+ap.add_argument("--cosmos_dir", default="", help="also write high-res RGB + depth + segmentation mp4s per kept episode for Cosmos Transfer (needs TABLETOP_CAM_EXTRA=1)")
 ap.add_argument("--tasks", default="", help="comma list overriding the spec's task types (e.g. hold one out for few-shot tests)")
 ap.add_argument("--only_success", type=int, default=1, help="with --out: keep only episodes that pass the task's success check")
+ap.add_argument("--max_steps", type=int, default=45 * 30, help="per-episode time limit in control steps")
 ap.add_argument("--speed", type=float, default=0.18, help="m/s of the grasp centre during moves")
 a = ap.parse_args()
 app = AppLauncher(headless=True, enable_cameras=True).app
@@ -38,127 +40,10 @@ import numpy as np, torch
 from PIL import Image, ImageDraw, ImageFont
 import tabletop as tt
 from tabletop_expert import Expert, quat_from_axes, OPEN, CLOSE
+from traj_core import TrajRunner, CosmosWriter, GRIP_T, SETTLE_T
 
 FONT = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13)
 FONT_B = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 14)
-GRIP_T = 18          # control steps (0.6 s) to actuate the gripper
-SETTLE_T = 6         # steps to settle after a move
-
-
-class TrajRunner:
-    """Runs one spec on every env in parallel (each env resolves object-relative nodes against its own layout)."""
-
-    def __init__(self, env, spec, rng):
-        self.env, self.spec, self.rng = env, spec, rng
-        self.kin = Expert(env, rng)          # reuse kinematics + IK (grasp centre, Jacobian, DLS step)
-        self.n = env.n
-
-    def sub(self, i, name):
-        """template placeholders: $obj -> the episode's object, $target -> its pad / tray / bowl"""
-        E = self.env.ep[i]
-        if name == "$obj":
-            return E["obj"]
-        if name == "$target":
-            return E.get("pad") or ("tray" if E["task"] == "tray" else "bowl")
-        return name
-
-    def resolve(self, i, nid, cur_yaw):
-        nd = self.spec["nodes"][str(nid)]
-        if "obj" in nd:
-            name = self.sub(i, nd["obj"])
-            off = np.asarray(nd.get("offset", [0, 0, 0]), float)
-            if name in tt.GRASP:                       # graspable: offsets are relative to its grasp point
-                g, gyaw = self.env.grasp_point(name, i)
-                p = g + off
-                if nd.get("yaw") == "auto":            # closing axis across the object; pick the sign nearest the current yaw
-                    yaw = min((gyaw, gyaw + math.pi), key=lambda y: abs((y - cur_yaw + math.pi) % (2 * math.pi) - math.pi))
-                else:
-                    yaw = math.radians(nd["yaw"]) if isinstance(nd.get("yaw"), (int, float)) else cur_yaw
-                return p, yaw
-            base = self.env.tray_center(i)[0] if name == "tray" else self.env.pos(name)[i][:2]
-            p = np.r_[base, 0.0] + off
-            if "carry" in nd:                          # add the carried object's grasp height (its bottom ends at offset z)
-                m = tt.OBJ_META[self.sub(i, nd["carry"])]; p[2] += max(0.012, m.get("grasp_h") or m["height"] / 2)
-            yaw = math.radians(nd["yaw"]) if isinstance(nd.get("yaw"), (int, float)) else cur_yaw
-            return p, yaw
-        p = np.asarray(nd["pos"], float); yaw = math.radians(nd["yaw"]) if "yaw" in nd else cur_yaw
-        return p, yaw
-
-    def reset(self):
-        self.k = np.zeros(self.n, int)              # step index
-        self.phase = ["grip"] * self.n              # grip -> move -> settle -> next step
-        self.s = np.zeros(self.n, int)
-        p, q = self.kin.tcp_pose(); p = p.cpu().numpy()
-        from isaaclab.utils import math as mu
-        xg = mu.matrix_from_quat(q)[:, :, 0].cpu().numpy()
-        self.yaw = np.arctan2(xg[:, 1], xg[:, 0])
-        self.p_hold = p.copy(); self.p0 = p.copy(); self.p1 = p.copy(); self.T = np.ones(self.n, int)
-        self.g = self.env.state()[:, 5].copy(); self.g0 = self.g.copy()
-        self.done = np.zeros(self.n, bool); self.err = np.ones(self.n)
-        self.kin.q_cmd = self.env.robot.data.joint_pos.clone()
-
-    def step(self):
-        steps = self.spec["trajectory"]
-        pos_des = self.p_hold.copy(); quat_des = np.zeros((self.n, 4)); grip = self.g.copy()
-        for i in range(self.n):
-            if self.done[i]:
-                quat_des[i] = quat_from_axes(np.array([math.cos(self.yaw[i]), math.sin(self.yaw[i]), 0]), np.array([0, 0, 1.0])); continue
-            st = steps[self.k[i]]
-            gt = OPEN if st["gripper"] == "open" else CLOSE
-            if self.phase[i] == "grip":
-                if self.s[i] == 0:
-                    self.g0[i] = self.g[i]
-                self.s[i] += 1; u = min(1.0, self.s[i] / GRIP_T); u = 3 * u * u - 2 * u ** 3
-                grip[i] = self.g0[i] + (gt - self.g0[i]) * u
-                if self.s[i] >= GRIP_T + (10 if abs(gt - self.g0[i]) > 0.1 else 0):
-                    self.phase[i], self.s[i] = "move", 0
-                    p1, yaw = self.resolve(i, st["node"], self.yaw[i])
-                    self.p0[i] = self.p_hold[i]; self.p1[i] = p1; self.yaw[i] = yaw
-                    self.T[i] = max(8, int(np.linalg.norm(p1 - self.p0[i]) / a.speed * tt.CTRL_HZ))
-            elif self.phase[i] == "move":
-                self.s[i] += 1; u = min(1.0, self.s[i] / self.T[i]); u = 3 * u * u - 2 * u ** 3
-                pos_des[i] = self.p0[i] + (self.p1[i] - self.p0[i]) * u
-                if self.s[i] >= self.T[i]:
-                    self.phase[i], self.s[i] = "settle", 0; self.p_hold[i] = self.p1[i]
-                    if os.environ.get("TRAJ_DEBUG") and i == 0:
-                        from isaaclab.utils import math as mu
-                        d = self.env.robot.data; o = self.env.origins[0]
-                        pb, qb = d.body_pos_w[0, self.kin.bi] - o, d.body_quat_w[0, self.kin.bi]
-                        pj, qj = d.body_pos_w[0, self.kin.ji] - o, d.body_quat_w[0, self.kin.ji]
-                        fx = pb + mu.quat_apply(qb[None], self.kin.tcp[:1])[0]; mv = pj + mu.quat_apply(qj[None], self.kin.mtip[:1])[0]
-                        R = mu.matrix_from_quat(qb[None])[0].cpu().numpy()
-                        cube = self.env.pos(self.env.ep[0]["obj"])[0]; mid = ((fx + mv) / 2).cpu().numpy()
-                        print("DBG node", st["node"], "target", np.round(self.p1[i], 3).tolist(), "mid", np.round(mid, 3).tolist(), "fixed", np.round(fx.cpu().numpy(), 3).tolist(),
-                              "moving", np.round(mv.cpu().numpy(), 3).tolist(), "cube", np.round(cube, 3).tolist(), "cube-mid in gripper frame", np.round(R.T @ (cube - mid), 3).tolist(),
-                              "gx", np.round(R[:, 0], 2).tolist(), "gy", np.round(R[:, 1], 2).tolist(), "gz", np.round(R[:, 2], 2).tolist(), flush=True)
-            elif self.phase[i] == "settle":
-                self.s[i] += 1; pos_des[i] = self.p1[i]
-                if (self.s[i] >= SETTLE_T and self.err[i] < 0.004) or self.s[i] >= 60:
-                    self.k[i] += 1; self.phase[i], self.s[i] = "grip", 0
-                    if self.k[i] >= len(steps):
-                        self.done[i] = True
-            if self.phase[i] in ("grip",):
-                pos_des[i] = self.p_hold[i]
-            quat_des[i] = quat_from_axes(np.array([math.cos(self.yaw[i]), math.sin(self.yaw[i]), 0]), np.array([0, 0, 1.0]))
-        self.g = grip
-        dev = self.env.dev
-        dq, err = self.kin.ik_step(torch.tensor(pos_des, device=dev, dtype=torch.float32), torch.tensor(quat_des, device=dev, dtype=torch.float32), gain=1.0)
-        self.err = err.cpu().numpy()
-        self.kin.q_cmd[:, :5] += dq
-        self.kin.q_cmd[:, 5] = torch.tensor(grip, device=dev, dtype=torch.float32)
-        lim = self.env.robot.data.soft_joint_pos_limits
-        self.kin.q_cmd = torch.clamp(self.kin.q_cmd, lim[..., 0], lim[..., 1])
-        return self.kin.q_cmd.cpu().numpy().astype(np.float64)
-
-    def label(self, i):
-        steps = self.spec["trajectory"]
-        if self.done[i]:
-            return f"done ({len(steps)} steps)"
-        st = steps[self.k[i]]
-        what = {"grip": f"{'closing' if st['gripper'] == 'close' else 'opening'} gripper", "move": f"moving to node {st['node']}", "settle": f"at node {st['node']}"}[self.phase[i]]
-        return f"step {self.k[i] + 1}/{len(steps)}: [{st['gripper'].upper()}] node {st['node']} - {what}"
-
-
 def make_markers(spec):
     import isaaclab.sim as sim_utils
     from isaaclab.markers import VisualizationMarkers, VisualizationMarkersCfg
@@ -189,7 +74,7 @@ def main():
     rng = np.random.default_rng(a.seed + 11)
     req = spec.get("scene", {}).get("require", [])
     env = tt.Tabletop(num_envs=a.num_envs, seed=spec.get("scene", {}).get("seed", a.seed), task_mix=tuple(spec.get("tasks") or tt.TASKS))
-    runner = TrajRunner(env, spec, rng)
+    runner = TrajRunner(env, spec, rng, speed=a.speed)
     markers = make_markers(spec) if (a.video and a.markers and not a.out) else None   # markers would leak into recorded images
 
     def sample_ok():
@@ -201,84 +86,104 @@ def main():
                 E["text"] = spec["text"] if spec.get("text") and spec["text"] != "$text" else E["text"]; return E
 
     frames, rows, acts, meta = [], [], {}, []
-    n_done, attempts = 0, 0
+    n_done, attempts, ep0_count = 0, 0, 0
     import pandas as pd
+    env.reset(episodes=[sample_ok() for _ in range(env.n)])
+    for _ in range(10):
+        env.step(np.tile(tt.HOME, (env.n, 1)))
+    env.t[:] = 0
+    runner.reset()
+    buf = [dict(S=[], A=[], F=[]) for _ in range(env.n)]
+    max_bottom = np.full(env.n, -1.0)
+    cw = None
+    if a.cosmos_dir:
+        assert tt.CAM_EXTRA, "set TABLETOP_CAM_EXTRA=1 (and TABLETOP_CAM_SCALE=4) for the Cosmos export"
+        os.makedirs(a.cosmos_dir, exist_ok=True); cw = [CosmosWriter(a.cosmos_dir, i) for i in range(env.n)]
+        for w_ in cw:
+            w_.start()
+    t0 = time.time()
+    # asynchronous episodes: an env that finishes is scored, saved and reset on its own, the others keep running
     while n_done < a.episodes:
-        eps = env.reset(episodes=[sample_ok() for _ in range(env.n)])
-        for _ in range(10):
-            env.step(np.tile(tt.HOME, (env.n, 1)))
-        env.t[:] = 0
-        runner.reset()
-        buf = [dict(S=[], A=[], F=[]) for _ in range(env.n)]
-        node_ids = sorted(spec["nodes"], key=lambda x: int(x) if x.isdigit() else x)
-        max_bottom = np.full(env.n, -1.0)
-        while not runner.done.all() and env.t.max() < 60 * tt.CTRL_HZ:
-            for i in range(env.n):
-                E_ = env.ep[i]
-                if E_["obj"] in tt.OBJ_META:
-                    max_bottom[i] = max(max_bottom[i], env.pos(E_["obj"])[i][2] + tt.OBJ_META[E_["obj"]]["zmin"])
-            cmd = runner.step()
-            S = env.state()
-            rec = env.t % 3 == 0
-            vis_frame = bool(a.video) and n_done < a.video_eps
-            if markers is not None and vis_frame:
-                pts, kinds = [], []
-                for st_i, st in enumerate(spec["trajectory"]):
-                    p, _ = runner.resolve(0, st["node"], runner.yaw[0])
-                    p = p.copy()
-                    pts.append(p + env.origins[0].cpu().numpy()); kinds.append(2 if st_i == min(runner.k[0], len(spec["trajectory"]) - 1) and not runner.done[0] else (0 if st["gripper"] == "open" else 1))
-                markers.visualize(translations=torch.tensor(np.array(pts), dtype=torch.float32), marker_indices=torch.tensor(kinds))
-            if a.out and rec.any() or vis_frame:
-                f, w = env.images()
-            if a.out:
-                for i in range(env.n):
-                    buf[i]["S"].append(S[i].astype(np.float32)); buf[i]["A"].append(cmd[i].astype(np.float32))
-                    if rec[i]:
-                        buf[i]["F"].append((int(env.t[i]), f[i], w[i]))
-            if vis_frame:
-                hf = env.scene["front"].data.output["rgb"][0, ..., :3].cpu().numpy(); hw = env.scene["wrist"].data.output["rgb"][0, ..., :3].cpu().numpy()
-                im = Image.fromarray(np.concatenate([hf, hw], 1)); W, Hh = im.size
-                canvas = Image.new("RGB", (W, Hh + 46), "white"); canvas.paste(im, (0, 46)); d = ImageDraw.Draw(canvas)
-                d.text((6, 3), f"\"{env.ep[0]['text']}\"", font=FONT_B, fill="black")
-                d.text((6, 24), runner.label(0) + f"   t={env.t[0] / tt.CTRL_HZ:4.1f}s   jaw={S[0, 5]:+.2f} rad", font=FONT, fill=(50, 50, 50))
-                if markers is not None:
-                    uv, ok = project(env, [runner.resolve(0, st["node"], runner.yaw[0])[0] for st in spec["trajectory"]])
-                    seen = set()
-                    for (u, v), good, st in zip(uv, ok, spec["trajectory"]):
-                        if good and st["node"] not in seen and 0 <= u < hf.shape[1] and 0 <= v < hf.shape[0]:
-                            seen.add(st["node"]); d.text((u + 6, v + 46 - 16), str(st["node"]), font=FONT_B, fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
-                frames.append(np.asarray(canvas))
-            env.step(cmd)
-        if markers is not None:
-            markers.set_visibility(n_done + env.n < a.video_eps)
-        succ = env.success()
         for i in range(env.n):
-            if n_done >= a.episodes:
-                break
+            E_ = env.ep[i]
+            max_bottom[i] = max(max_bottom[i], env.pos(E_["obj"])[i][2] + tt.OBJ_META[E_["obj"]]["zmin"])
+        cmd = runner.step()
+        S = env.state()
+        rec = env.t % 3 == 0
+        vis_frame = bool(a.video) and ep0_count < a.video_eps
+        if markers is not None and vis_frame:
+            pts, kinds = [], []
+            for st_i, st in enumerate(spec["trajectory"]):
+                p, _ = runner.resolve(0, st["node"], runner.yaw[0])
+                pts.append(p.copy() + env.origins[0].cpu().numpy()); kinds.append(2 if st_i == min(runner.k[0], len(spec["trajectory"]) - 1) and not runner.done[0] else (0 if st["gripper"] == "open" else 1))
+            markers.visualize(translations=torch.tensor(np.array(pts), dtype=torch.float32), marker_indices=torch.tensor(kinds))
+        if (a.out and rec.any()) or vis_frame:
+            f, w = env.images()
+        if a.out:
+            for i in range(env.n):
+                buf[i]["S"].append(S[i].astype(np.float32)); buf[i]["A"].append(cmd[i].astype(np.float32))
+                if rec[i]:
+                    buf[i]["F"].append((int(env.t[i]), f[i], w[i]))
+        if cw is not None:
+            for i in range(env.n):
+                if env.t[i] % 2 == 0:
+                    cw[i].add(env.cosmos_frames(i), env.t[i])
+        if vis_frame:
+            hf = env.scene["front"].data.output["rgb"][0, ..., :3].cpu().numpy(); hw = env.scene["wrist"].data.output["rgb"][0, ..., :3].cpu().numpy()
+            im = Image.fromarray(np.concatenate([hf, hw], 1)); W, Hh = im.size
+            canvas = Image.new("RGB", (W, Hh + 46), "white"); canvas.paste(im, (0, 46)); d = ImageDraw.Draw(canvas)
+            d.text((6, 3), f"\"{env.ep[0]['text']}\"", font=FONT_B, fill="black")
+            d.text((6, 24), runner.label(0) + f"   t={env.t[0] / tt.CTRL_HZ:4.1f}s   jaw={S[0, 5]:+.2f} rad", font=FONT, fill=(50, 50, 50))
+            if markers is not None:
+                uv, ok = project(env, [runner.resolve(0, st["node"], runner.yaw[0])[0] for st in spec["trajectory"]])
+                seen = set()
+                for (u, v), good, st in zip(uv, ok, spec["trajectory"]):
+                    if good and st["node"] not in seen and 0 <= u < hf.shape[1] and 0 <= v < hf.shape[0]:
+                        seen.add(st["node"]); d.text((u + 6, v + 46 - 16), str(st["node"]), font=FONT_B, fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
+            frames.append(np.asarray(canvas))
+        env.step(cmd)
+        finished = [i for i in range(env.n) if runner.done[i] or env.t[i] >= a.max_steps]
+        if not finished:
+            continue
+        succ = env.success()
+        for i in finished:
             E = env.ep[i]
             p_end = env.pos(E["obj"])[i]; q_end = env.quat(E["obj"])[i]
-            tgt = runner.sub(i, "$target") if E["task"] != "pick" else None
-            tgt_xy = (env.tray_center(i)[0] if tgt == "tray" else env.pos(tgt)[i][:2]) if tgt else None
+            tgt = runner.sub(i, "$target") if E["task"] in ("pad", "tray", "bowl", "rel") else None
+            tgt_xy = (np.asarray(E["rel_xy"]) if tgt == "$rel" else env.tray_center(i)[0] if tgt == "tray" else env.pos(tgt)[i][:2]) if tgt else None
             up_z = 1 - 2 * (q_end[1] ** 2 + q_end[2] ** 2)          # z-component of the object's up axis (1 = upright)
-            rec = dict(ep=n_done, text=E["text"], success_check=bool(succ[i]), task=E["task"], obj=E["obj"], steps=int(env.t[i]),
-                       lifted_cm=round(100 * max_bottom[i], 1), end_bottom_cm=round(100 * (p_end[2] + tt.OBJ_META[E["obj"]]["zmin"]), 1),
-                       end_dist_cm=round(100 * float(np.linalg.norm(p_end[:2] - tgt_xy)), 1) if tgt else None, upright=round(float(up_z), 2),
-                       jaw=round(float(env.state()[i, 5]), 2),
-                       layout={k: [float(v[0][0]), float(v[0][1]), float(v[1])] for k, v in E["layout"].items()})
+            r_ = dict(ep=n_done, text=E["text"], success_check=bool(succ[i]), task=E["task"], obj=E["obj"], steps=int(env.t[i]),
+                      retries=int(runner.retries[i]), lifted_cm=round(100 * max_bottom[i], 1), end_bottom_cm=round(100 * (p_end[2] + tt.OBJ_META[E["obj"]]["zmin"]), 1),
+                      end_dist_cm=round(100 * float(np.linalg.norm(p_end[:2] - tgt_xy)), 1) if tgt else None, upright=round(float(up_z), 2),
+                      jaw=round(float(S[i, 5]), 2), el=round(time.time() - t0), texture=os.path.basename(tt.TEX[E["table_mat"]]),
+                      dr=E.get("dr"), hdri=getattr(env, "hdri", None),
+                      layout={k: [float(v[0][0]), float(v[0][1]), float(v[1])] for k, v in E["layout"].items()})
             attempts += 1
-            if a.out and a.only_success and not succ[i]:
-                print(json.dumps(rec | {"layout": None, "ep": None, "kept": False}), flush=True)
-                continue                                    # failed attempt: not recorded, not counted
-            meta.append(rec)
-            if a.out:
-                e = n_done
-                acts[f"ep{e}_action"] = np.stack(buf[i]["A"]); acts[f"ep{e}_state"] = np.stack(buf[i]["S"])
-                for fidx, fi, wi in buf[i]["F"]:
-                    for cam, im in (("front", fi), ("wrist", wi)):
-                        b = io.BytesIO(); Image.fromarray(im).save(b, format="JPEG", quality=90)
-                        rows.append((e, cam, fidx, b.getvalue(), E["text"], E["text"]))
-            n_done += 1
-            print(json.dumps(meta[-1] | {"layout": None}), flush=True)
+            if i == 0:
+                ep0_count += 1
+            keep = n_done < a.episodes and not (a.out and a.only_success and not succ[i])
+            if keep:
+                meta.append(r_)
+                if a.out:
+                    e = n_done
+                    acts[f"ep{e}_action"] = np.stack(buf[i]["A"]); acts[f"ep{e}_state"] = np.stack(buf[i]["S"])
+                    for fidx, fi, wi in buf[i]["F"]:
+                        for cam, im in (("front", fi), ("wrist", wi)):
+                            b = io.BytesIO(); Image.fromarray(im).save(b, format="JPEG", quality=90)
+                            rows.append((e, cam, fidx, b.getvalue(), E["text"], E["text"]))
+                n_done += 1
+            if cw is not None:
+                cw[i].finish(keep_as=f"ep{r_['ep']:05d}" if keep else None, meta={k_: v_ for k_, v_ in r_.items() if k_ != "layout"})
+                cw[i].start()
+            print(json.dumps(r_ | {"layout": None, "kept": keep, "attempts": attempts}), flush=True)
+            buf[i] = dict(S=[], A=[], F=[]); max_bottom[i] = -1.0
+        if n_done >= a.episodes:
+            break
+        env.reset(env_ids=finished, episodes=[sample_ok() for _ in finished], settle=0)
+        for i in finished:
+            runner.reset_env(i)
+        if markers is not None and 0 in finished:
+            markers.set_visibility(ep0_count < a.video_eps)
     if a.video and frames:
         import av
         os.makedirs(os.path.dirname(os.path.abspath(a.video)), exist_ok=True)
@@ -301,5 +206,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        import traceback; traceback.print_exc(); sys.stdout.flush(); sys.stderr.flush(); os._exit(1)   # Kit would hang on exit
     sys.stdout.flush(); os._exit(0)

@@ -1,0 +1,13 @@
+{
+ "base": "A small yellow 3D-printed SO-101 robot arm on a tabletop manipulates household objects. Realistic camera footage, natural motion blur, the arm and the objects keep their shapes and positions.",
+ "styles": [
+  "Bright office desk lit by daylight from a window, light oak wood table, soft shadows.",
+  "Home kitchen counter with a white marble top, warm ceiling lights in the evening.",
+  "University robotics lab, grey laminate workbench, cool fluorescent overhead lighting.",
+  "Workshop table with a dark rubber cutting mat, a desk lamp creating hard directional light.",
+  "Cozy living room wooden coffee table, dim warm lamp light and slight noise like a webcam.",
+  "Garage workbench made of plywood, mixed sunlight and LED light, slightly dusty surface.",
+  "Clean white studio table with diffuse light, high-key photography look.",
+  "Cafe table with a green fabric tablecloth, overcast window light, muted colours."
+ ]
+}

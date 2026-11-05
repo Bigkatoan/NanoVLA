@@ -1,20 +1,95 @@
 {
   "text": "$text",
-  "tasks": ["pad", "tray", "bowl"],
+  "tasks": [
+    "pad",
+    "tray",
+    "bowl"
+  ],
   "nodes": {
-    "1": {"obj": "$obj", "offset": [0, 0, 0.07], "yaw": "auto"},
-    "2": {"obj": "$obj", "offset": [0, 0, 0.0], "yaw": "auto"},
-    "3": {"obj": "$obj", "offset": [0, 0, 0.10]},
-    "4": {"obj": "$target", "offset": [0, 0, 0.15], "carry": "$obj"},
-    "5": {"obj": "$target", "offset": [0, 0, 0.025], "carry": "$obj"},
-    "6": {"obj": "$target", "offset": [0, 0, 0.12], "carry": "$obj"}
+    "1": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.07
+      ],
+      "yaw": "auto"
+    },
+    "2": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.0
+      ],
+      "yaw": "auto"
+    },
+    "3": {
+      "obj": "$obj",
+      "offset": [
+        0,
+        0,
+        0.1
+      ]
+    },
+    "4": {
+      "obj": "$target",
+      "offset": [
+        0,
+        0,
+        0.15
+      ],
+      "carry": "$obj"
+    },
+    "5": {
+      "obj": "$target",
+      "offset": [
+        0,
+        0,
+        0.025
+      ],
+      "carry": "$obj"
+    },
+    "6": {
+      "obj": "$target",
+      "offset": [
+        0,
+        0,
+        0.12
+      ],
+      "carry": "$obj"
+    }
   },
   "trajectory": [
-    {"node": "1", "gripper": "open"},
-    {"node": "2", "gripper": "open"},
-    {"node": "3", "gripper": "close"},
-    {"node": "4", "gripper": "close"},
-    {"node": "5", "gripper": "close"},
-    {"node": "6", "gripper": "open"}
+    {
+      "node": "1",
+      "gripper": "open"
+    },
+    {
+      "node": "2",
+      "gripper": "open"
+    },
+    {
+      "node": "3",
+      "gripper": "close",
+      "retry": {
+        "if_not_lifted": "$obj",
+        "goto": 0,
+        "max": 2,
+        "min_lift": 0.03
+      }
+    },
+    {
+      "node": "4",
+      "gripper": "close"
+    },
+    {
+      "node": "5",
+      "gripper": "close"
+    },
+    {
+      "node": "6",
+      "gripper": "open"
+    }
   ]
 }

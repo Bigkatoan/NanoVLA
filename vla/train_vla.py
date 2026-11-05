@@ -167,7 +167,12 @@ class VLA(nn.Module):
 
 def build_model(n_emb, align_ckpt, dev):
     s = torch.load(align_ckpt, map_location=dev)
-    ts = torch.load(os.path.join(s["args"]["text"], "text_encoder.pt"), map_location=dev)
+    # checkpoints store absolute paths from training time: resolve the text encoder dir by name under the ckpt root
+    tdir = s["args"]["text"]
+    if not os.path.isdir(tdir):
+        tdir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(align_ckpt))), os.path.basename(os.path.normpath(tdir)))
+    s["args"]["text"] = tdir
+    ts = torch.load(os.path.join(tdir, "text_encoder.pt"), map_location=dev)
     venc, tenc = VisionViT(drop_path=0.05), TextEncoder(ts["cfg"]["vocab"], max_len=ts["cfg"]["max_len"])
     al = Aligner(venc, tenc); al.load_state_dict(s["model"])
     tok = Enc(Tokenizer.from_file(os.path.join(s["args"]["text"], "tokenizer.json")), ts["cfg"]["max_len"])

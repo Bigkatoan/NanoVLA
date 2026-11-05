@@ -45,6 +45,7 @@ def main():
     ap.add_argument("--steps", type=int, default=3000)
     ap.add_argument("--port", type=int, default=6000)
     ap.add_argument("--bench", default="isaac_bench", help="data/<bench> in the few-shot bench format")
+    ap.add_argument("--vla", default=os.path.join(CK, "vla/vla.pt"), help="starting checkpoint (vla/vla.pt, vla_isaac/vla.pt)")
     ap.add_argument("--save", default="", help="optional path to save the fine-tuned weights + normalisation")
     a = ap.parse_args()
     dev = "cuda"
@@ -54,7 +55,7 @@ def main():
     torch.manual_seed(a.seed); random.seed(a.seed); np.random.seed(a.seed)
     P = fs.prepare(repo, a.N, 0, a.seed)
     cond, sd, aux = CKPTS[a.cfg]
-    vla = os.path.join(CK, "vla/vla.pt")
+    vla = a.vla
     t0 = time.time()
     model, tok, row = finetune(P, cond, a.steps, 1e-4 if cond != "C" else 3e-4, 64, dev, vla, 3e-5, sd, aux)
     print(json.dumps(dict(event="trained", cfg=a.cfg, N=a.N, seed=a.seed, train_eps=P["n_train_eps"], samples=len(P["train"]), secs=round(time.time() - t0))), flush=True)

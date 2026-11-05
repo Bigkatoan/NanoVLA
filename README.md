@@ -73,6 +73,28 @@ python traj_tool.py --spec specs/place.json --episodes 1 --video out/demo.mp4   
 python traj_tool.py --spec specs/place.json --episodes 200 --num_envs 4 --out ../data/place   # dataset
 ```
 
+## Tasks, randomisation and synthetic data
+
+Tasks in the Isaac tabletop (`isaac_bench/tabletop.py`, instruction generated per episode):
+`pick`, `pad` ("put X on the pink pad"), `tray`, `bowl` (held out for few-shot tests), `push` ("push X left / away from you"),
+`topple` ("knock over X"), `rotate` ("rotate X by 90 degrees"), `rel` ("put X to the left of / behind Y").
+Specs: `specs/pick.json`, `specs/place.json` (pad / tray / bowl / rel), `specs/push.json` (push / topple), `specs/rotate.json`.
+
+Domain randomisation (`TABLETOP_DR=1`, default): 11 table textures, per-env lamp (intensity, colour temperature,
+position), HDRI dome per run, front-camera pose jitter, object mass / friction, robot joint damping / friction; the
+sampled values are stored in each episode's metadata.
+
+Isaac Lab Mimic (`isaac_bench/nanovla_mimic/`): manager-based variants of the tabletop (end-effector pose actions,
+subtask signal "grasp") for fixed (task, object, target) triples. Record source demos (`record_src.py`, scripted now,
+teleoperation later), then Isaac Lab's `annotate_demos.py --auto` and `generate_dataset.py` (through
+`run_isaaclab_script.py`, which registers the tasks) and `hdf5_to_bench.py` to get NanoVLA data. Smoke test: 3 source
+demos -> 5 generated (5/6 attempts), see `smoke_tests.sh`.
+
+Cosmos Transfer (`cosmos/`): `traj_tool.py --cosmos_dir` (with `TABLETOP_CAM_EXTRA=1 TABLETOP_CAM_SCALE=4`) exports
+RGB + depth + segmentation videos per episode; `make_specs.py` writes Cosmos-Transfer2.5 specs with style prompts,
+`run_cosmos.sh` runs them on an 80 GB-class GPU (~65 GB VRAM needed), `import_cosmos.py` turns the outputs into new
+episodes with the original actions.
+
 ## Layout
 
 ```

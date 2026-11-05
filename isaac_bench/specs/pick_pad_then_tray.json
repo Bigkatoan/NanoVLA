@@ -1,0 +1,30 @@
+{
+  "text": "pick up the red cube, put it on the pink pad, then move it into the tray",
+  "scene": {"require": ["red_cube", "pink_pad", "tray"]},
+  "nodes": {
+    "1": {"obj": "red_cube", "offset": [0, 0, 0.08], "yaw": "auto"},
+    "2": {"obj": "red_cube", "offset": [0, 0, 0.0], "yaw": "auto"},
+    "3": {"obj": "red_cube", "offset": [0, 0, 0.10]},
+    "4": {"obj": "pink_pad", "offset": [0, 0, 0.12]},
+    "5": {"obj": "pink_pad", "offset": [0, 0, 0.025]},
+    "6": {"obj": "pink_pad", "offset": [0, 0, 0.10]},
+    "7": {"obj": "tray", "offset": [0, 0, 0.12]},
+    "8": {"obj": "tray", "offset": [0, 0, 0.035]},
+    "9": {"pos": [0.17, 0.0, 0.12]}
+  },
+  "trajectory": [
+    {"node": "1", "gripper": "open"},
+    {"node": "2", "gripper": "open"},
+    {"node": "3", "gripper": "close"},
+    {"node": "4", "gripper": "close"},
+    {"node": "5", "gripper": "close"},
+    {"node": "6", "gripper": "open"},
+    {"node": "1", "gripper": "open"},
+    {"node": "2", "gripper": "open"},
+    {"node": "3", "gripper": "close"},
+    {"node": "7", "gripper": "close"},
+    {"node": "8", "gripper": "close"},
+    {"node": "7", "gripper": "open"},
+    {"node": "9", "gripper": "open"}
+  ]
+}

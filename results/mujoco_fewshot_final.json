@@ -1,0 +1,273 @@
+{
+ "expert_ceiling": 0.8266666666666667,
+ "table": [
+  {
+   "cfg": "base",
+   "config": "A_v1: pretrained VLA (frozen encoders)",
+   "N": 10,
+   "seeds": 3,
+   "successes": 14,
+   "rollouts": 150,
+   "sr": 0.09333333333333334,
+   "ci_lo": 0.056411348659597745,
+   "ci_hi": 0.15056517784558682,
+   "seed_mean": 0.09333333333333332,
+   "seed_std": 0.049888765156985884,
+   "frac_of_expert": 0.11290322580645162
+  },
+  {
+   "cfg": "fix",
+   "config": "A_v1 + state dropout + localisation loss",
+   "N": 10,
+   "seeds": 3,
+   "successes": 8,
+   "rollouts": 150,
+   "sr": 0.05333333333333334,
+   "ci_lo": 0.027269212890132462,
+   "ci_hi": 0.1017050047467096,
+   "seed_mean": 0.05333333333333334,
+   "seed_std": 0.0339934634239519,
+   "frac_of_expert": 0.06451612903225806
+  },
+  {
+   "cfg": "fixenc",
+   "config": "A_v1 + state dropout + localisation loss + encoder fine-tune",
+   "N": 10,
+   "seeds": 3,
+   "successes": 19,
+   "rollouts": 150,
+   "sr": 0.12666666666666668,
+   "ci_lo": 0.082610643407449,
+   "ci_hi": 0.18936780715468765,
+   "seed_mean": 0.12666666666666668,
+   "seed_std": 0.009428090415820642,
+   "frac_of_expert": 0.1532258064516129
+  },
+  {
+   "cfg": "scratch",
+   "config": "C: everything from scratch",
+   "N": 10,
+   "seeds": 3,
+   "successes": 6,
+   "rollouts": 150,
+   "sr": 0.04,
+   "ci_lo": 0.018458908886903574,
+   "ci_hi": 0.08451453912715763,
+   "seed_mean": 0.04,
+   "seed_std": 0.0282842712474619,
+   "frac_of_expert": 0.04838709677419355
+  },
+  {
+   "cfg": "base",
+   "config": "A_v1: pretrained VLA (frozen encoders)",
+   "N": 20,
+   "seeds": 3,
+   "successes": 20,
+   "rollouts": 150,
+   "sr": 0.13333333333333333,
+   "ci_lo": 0.08799732892586415,
+   "ci_hi": 0.19698150644766288,
+   "seed_mean": 0.13333333333333333,
+   "seed_std": 0.05249338582674541,
+   "frac_of_expert": 0.16129032258064516
+  },
+  {
+   "cfg": "fix",
+   "config": "A_v1 + state dropout + localisation loss",
+   "N": 20,
+   "seeds": 3,
+   "successes": 25,
+   "rollouts": 150,
+   "sr": 0.16666666666666666,
+   "ci_lo": 0.11551351052095787,
+   "ci_hi": 0.23446724890952125,
+   "seed_mean": 0.16666666666666666,
+   "seed_std": 0.07542472332656507,
+   "frac_of_expert": 0.20161290322580644
+  },
+  {
+   "cfg": "fixenc",
+   "config": "A_v1 + state dropout + localisation loss + encoder fine-tune",
+   "N": 20,
+   "seeds": 3,
+   "successes": 32,
+   "rollouts": 150,
+   "sr": 0.21333333333333335,
+   "ci_lo": 0.15536143670182534,
+   "ci_hi": 0.28562201640838675,
+   "seed_mean": 0.21333333333333335,
+   "seed_std": 0.04714045207910318,
+   "frac_of_expert": 0.25806451612903225
+  },
+  {
+   "cfg": "scratch",
+   "config": "C: everything from scratch",
+   "N": 20,
+   "seeds": 3,
+   "successes": 5,
+   "rollouts": 150,
+   "sr": 0.03333333333333333,
+   "ci_lo": 0.014320220695575196,
+   "ci_hi": 0.07565284250709559,
+   "seed_mean": 0.03333333333333333,
+   "seed_std": 0.009428090415820633,
+   "frac_of_expert": 0.04032258064516129
+  },
+  {
+   "cfg": "base",
+   "config": "A_v1: pretrained VLA (frozen encoders)",
+   "N": 50,
+   "seeds": 3,
+   "successes": 33,
+   "rollouts": 150,
+   "sr": 0.22,
+   "ci_lo": 0.16115929476762675,
+   "ci_hi": 0.2928245431539757,
+   "seed_mean": 0.21999999999999997,
+   "seed_std": 0.06531972647421808,
+   "frac_of_expert": 0.2661290322580645
+  },
+  {
+   "cfg": "fix",
+   "config": "A_v1 + state dropout + localisation loss",
+   "N": 50,
+   "seeds": 3,
+   "successes": 43,
+   "rollouts": 150,
+   "sr": 0.2866666666666667,
+   "ci_lo": 0.22033702683064219,
+   "ci_hi": 0.3636506592048645,
+   "seed_mean": 0.2866666666666667,
+   "seed_std": 0.009428090415820616,
+   "frac_of_expert": 0.3467741935483871
+  },
+  {
+   "cfg": "fixenc",
+   "config": "A_v1 + state dropout + localisation loss + encoder fine-tune",
+   "N": 50,
+   "seeds": 3,
+   "successes": 61,
+   "rollouts": 150,
+   "sr": 0.4066666666666667,
+   "ci_lo": 0.33133978704521405,
+   "ci_hi": 0.48665482559532014,
+   "seed_mean": 0.4066666666666667,
+   "seed_std": 0.10498677165349082,
+   "frac_of_expert": 0.49193548387096775
+  },
+  {
+   "cfg": "scratch",
+   "config": "C: everything from scratch",
+   "N": 50,
+   "seeds": 3,
+   "successes": 19,
+   "rollouts": 150,
+   "sr": 0.12666666666666668,
+   "ci_lo": 0.082610643407449,
+   "ci_hi": 0.18936780715468765,
+   "seed_mean": 0.12666666666666668,
+   "seed_std": 0.04109609335312651,
+   "frac_of_expert": 0.1532258064516129
+  }
+ ],
+ "tests": [
+  {
+   "N": 10.0,
+   "a": "fix",
+   "b": "base",
+   "diff": -0.04,
+   "z": -1.3288566661322077,
+   "p": 0.18389526277075924
+  },
+  {
+   "N": 10.0,
+   "a": "fixenc",
+   "b": "base",
+   "diff": 0.03333333333333334,
+   "z": 0.922609731322045,
+   "p": 0.3562106225543575
+  },
+  {
+   "N": 10.0,
+   "a": "base",
+   "b": "scratch",
+   "diff": 0.05333333333333334,
+   "z": 1.8516401994808174,
+   "p": 0.06407750646029693
+  },
+  {
+   "N": 10.0,
+   "a": "fix",
+   "b": "scratch",
+   "diff": 0.013333333333333336,
+   "z": 0.5474489014288816,
+   "p": 0.5840703669609449
+  },
+  {
+   "N": 20.0,
+   "a": "fix",
+   "b": "base",
+   "diff": 0.033333333333333326,
+   "z": 0.8084520834348352,
+   "p": 0.4188303794974009
+  },
+  {
+   "N": 20.0,
+   "a": "fixenc",
+   "b": "base",
+   "diff": 0.08000000000000002,
+   "z": 1.8302666282178162,
+   "p": 0.06721007897433245
+  },
+  {
+   "N": 20.0,
+   "a": "base",
+   "b": "scratch",
+   "diff": 0.1,
+   "z": 3.1333978071043798,
+   "p": 0.0017279507747471159
+  },
+  {
+   "N": 20.0,
+   "a": "fix",
+   "b": "scratch",
+   "diff": 0.13333333333333333,
+   "z": 3.849001794486394,
+   "p": 0.00011860013871603736
+  },
+  {
+   "N": 50.0,
+   "a": "fix",
+   "b": "base",
+   "diff": 0.06666666666666668,
+   "z": 1.3274856101075458,
+   "p": 0.1843480969299464
+  },
+  {
+   "N": 50.0,
+   "a": "fixenc",
+   "b": "base",
+   "diff": 0.18666666666666668,
+   "z": 3.4851471667893437,
+   "p": 0.0004918664361407331
+  },
+  {
+   "N": 50.0,
+   "a": "base",
+   "b": "scratch",
+   "diff": 0.09333333333333332,
+   "z": 2.1353110662541184,
+   "p": 0.03273560959230856
+  },
+  {
+   "N": 50.0,
+   "a": "fix",
+   "b": "scratch",
+   "diff": 0.16,
+   "z": 3.4220594161076643,
+   "p": 0.0006214873085638823
+  }
+ ],
+ "complete": true,
+ "n_jobs": 36
+}

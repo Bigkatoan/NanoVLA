@@ -218,3 +218,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- NanoVLA: large / generated / third-party content (not versioned)
+/data/
+/ckpt/
+/envs/
+/third_party/
+/logs/
+/nanovla/
+isaac_bench/out/
+isaac_bench/results/
+isaac_bench/textures/*.png
+isaac_bench/assets/ycb/*.usd
+isaac_bench/assets/ycb/*_phys.usda
+isaac_bench/assets/ycb/Materials/
+*.mp4
+*.npy
+*.npz
+*.pt
+*.parquet

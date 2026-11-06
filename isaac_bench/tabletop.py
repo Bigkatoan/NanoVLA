@@ -312,6 +312,8 @@ class Tabletop:
             tgt = layout[ref][0] + u * half
             if not (0.14 < np.linalg.norm(tgt - np.array([BASE_X, 0.0])) < 0.29) or any(np.linalg.norm(tgt - q) < 0.035 for q, _ in placed if not np.allclose(q, layout[ref][0]) and not np.allclose(q, layout[obj][0])):
                 return None
+            if np.linalg.norm(tgt - layout[obj][0]) < 0.09:      # the object must actually have to move (else "success" at t=0)
+                return None
             info.update(ref=ref, rel_xy=tuple(tgt)); text = f"put the {d} {info['rel']} the {OBJ_META[ref]['desc']}"
         info.update(text=text, layout=layout, present=present, pads=[p for p in pads if p in layout], tray="tray" in layout, bowl="bowl" in layout,
                     table_mat=int(r.integers(len(self.table_mats))))

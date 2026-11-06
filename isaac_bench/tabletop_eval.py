@@ -16,6 +16,7 @@ import argparse, json, os, sys, time
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--tasks", default="pick,pad,tray,bowl")
+ap.add_argument("--objects", default="", help="comma list: only episodes whose target object is one of these (e.g. held-out objects)")
 ap.add_argument("--episodes", type=int, default=50)
 ap.add_argument("--num_envs", type=int, default=4)
 ap.add_argument("--seed", type=int, default=10_000, help="layout seed (keep disjoint from the demo seeds)")
@@ -45,6 +46,13 @@ def main():
     if a.dry_run:
         env = pio.FakeTabletop(num_envs=a.num_envs, seed=a.seed, task_mix=tuple(a.tasks.split(",")))
     else:
+        if a.objects:                                   # restrict target objects (rejection sampling on top of the tabletop sampler)
+            only = set(a.objects.split(",")); _orig = tt.Tabletop._sample_once
+            tt.GRASP[:] = sorted(set(tt.GRASP) | only)       # held-out objects may have been removed by TABLETOP_HOLDOUT
+            def _restricted(self, _orig=_orig, only=only):
+                E = _orig(self)
+                return E if (E is not None and E["obj"] in only) else None
+            tt.Tabletop._sample_once = _restricted
         env = tt.Tabletop(num_envs=a.num_envs, seed=a.seed, task_mix=tuple(a.tasks.split(",")))
     conn = pio.FakeConn(a.cams) if a.dry_run and a.port == 0 else Client(("localhost", a.port), authkey=b"vla-isaac")
     conn.send("meta"); meta = conn.recv(); step = meta["step"]
@@ -84,7 +92,11 @@ def main():
             continue
         for i in done:
             E = env.ep[i]
-            res.append(dict(success=bool(succ[i]), task=E["task"], obj=E["obj"], text=E["text"], t=round(env.t[i] / tt.CTRL_HZ, 2)))
+            # grounding: another graspable object was lifted (the policy acted on the wrong object)
+            wrong = [o for o in E.get("present", []) if o != E["obj"] and o in tt.OBJ_META
+                     and env.pos(o)[i][2] + tt.OBJ_META[o]["zmin"] > 0.03]
+            res.append(dict(success=bool(succ[i]), task=E["task"], obj=E["obj"], text=E["text"], t=round(env.t[i] / tt.CTRL_HZ, 2),
+                            wrong_obj=wrong, n_present=len(E.get("present", []))))
             if i == 0:
                 ep0 += 1
             print(json.dumps(res[-1] | {"n": len(res), "sr": round(float(np.mean([r["success"] for r in res])), 3), "el": round(time.time() - t0)}), flush=True)
@@ -96,7 +108,8 @@ def main():
     for r in res:
         for key in (r["task"], r["obj"]):
             b = by.setdefault(key, [0, 0]); b[0] += r["success"]; b[1] += 1
-    out = dict(tasks=a.tasks, cams=a.cams, dry_run=a.dry_run, episodes=len(res), success_rate=float(np.mean([r["success"] for r in res])), by=by, exec=a.exec, seed=a.seed,
+    wrong_rate = float(np.mean([bool(r.get("wrong_obj")) for r in res])) if res else 0.0
+    out = dict(wrong_object_rate=wrong_rate, tasks=a.tasks, cams=a.cams, dry_run=a.dry_run, episodes=len(res), success_rate=float(np.mean([r["success"] for r in res])), by=by, exec=a.exec, seed=a.seed,
                wall_s=round(time.time() - t0), results=res)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True); json.dump(out, open(a.out, "w"), indent=1)
     if frames:

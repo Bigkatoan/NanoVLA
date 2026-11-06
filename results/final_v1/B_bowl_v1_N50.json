@@ -1,0 +1,295 @@
+{
+ "wrong_object_rate": 0.0,
+ "tasks": "bowl",
+ "cams": "wrist",
+ "dry_run": false,
+ "episodes": 24,
+ "success_rate": 0.0,
+ "by": {
+  "bowl": [
+   0,
+   24
+  ],
+  "green_block": [
+   0,
+   3
+  ],
+  "dex_cube": [
+   0,
+   3
+  ],
+  "rubiks_cube": [
+   0,
+   1
+  ],
+  "orange_bar": [
+   0,
+   2
+  ],
+  "multicolor_cube": [
+   0,
+   1
+  ],
+  "yellow_block": [
+   0,
+   1
+  ],
+  "red_block": [
+   0,
+   1
+  ],
+  "gelatin_box": [
+   0,
+   1
+  ],
+  "eraser": [
+   0,
+   2
+  ],
+  "purple_cube": [
+   0,
+   2
+  ],
+  "pudding_box": [
+   0,
+   1
+  ],
+  "blue_peg": [
+   0,
+   2
+  ],
+  "glue_stick": [
+   0,
+   1
+  ],
+  "bottle": [
+   0,
+   2
+  ],
+  "spool": [
+   0,
+   1
+  ]
+ },
+ "exec": 4,
+ "seed": 30000,
+ "wall_s": 942,
+ "results": [
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "green_block",
+   "text": "put the green block in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "dex_cube",
+   "text": "put the letter cube in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "green_block",
+   "text": "put the green block in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "rubiks_cube",
+   "text": "put the rubik's cube in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "orange_bar",
+   "text": "put the bar in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "multicolor_cube",
+   "text": "put the multicolored cube in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "orange_bar",
+   "text": "put the bar in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "yellow_block",
+   "text": "put the yellow block in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "red_block",
+   "text": "put the red block in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "gelatin_box",
+   "text": "put the gelatin box in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "eraser",
+   "text": "put the eraser in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 1
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "purple_cube",
+   "text": "put the cube in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "pudding_box",
+   "text": "put the pudding box in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "blue_peg",
+   "text": "put the blue cylinder in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "green_block",
+   "text": "put the green block in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "purple_cube",
+   "text": "put the cube in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "eraser",
+   "text": "put the eraser in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "dex_cube",
+   "text": "put the letter cube in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "glue_stick",
+   "text": "put the glue stick in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "bottle",
+   "text": "put the bottle in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "dex_cube",
+   "text": "put the letter cube in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "blue_peg",
+   "text": "put the blue cylinder in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "bottle",
+   "text": "put the bottle in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "bowl",
+   "obj": "spool",
+   "text": "put the spool in the bowl",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  }
+ ]
+}

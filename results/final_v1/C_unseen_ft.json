@@ -1,0 +1,249 @@
+{
+ "wrong_object_rate": 0.041666666666666664,
+ "tasks": "pick",
+ "cams": "wrist",
+ "dry_run": false,
+ "episodes": 24,
+ "success_rate": 0.0,
+ "by": {
+  "pick": [
+   0,
+   24
+  ],
+  "spool": [
+   0,
+   11
+  ],
+  "toy_brick": [
+   0,
+   7
+  ],
+  "glue_stick": [
+   0,
+   6
+  ]
+ },
+ "exec": 4,
+ "seed": 30000,
+ "wall_s": 680,
+ "results": [
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [
+    "yellow_triangle"
+   ],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "glue_stick",
+   "text": "pick up the glue stick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 1
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "glue_stick",
+   "text": "pick up the glue stick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "glue_stick",
+   "text": "pick up the glue stick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 1
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "glue_stick",
+   "text": "pick up the glue stick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "glue_stick",
+   "text": "pick up the glue stick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 1
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "spool",
+   "text": "pick up the spool",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "glue_stick",
+   "text": "pick up the glue stick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  }
+ ]
+}

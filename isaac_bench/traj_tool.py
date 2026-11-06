@@ -28,6 +28,8 @@ ap.add_argument("--video", default="", help="mp4 path for an annotated visualisa
 ap.add_argument("--video_eps", type=int, default=1, help="number of episodes (env 0) in the video")
 ap.add_argument("--markers", type=int, default=1, help="draw node markers in the video (never in recorded data)")
 ap.add_argument("--cosmos_dir", default="", help="also write high-res RGB + depth + segmentation mp4s per kept episode for Cosmos Transfer (needs TABLETOP_CAM_EXTRA=1)")
+ap.add_argument("--dart_sigma", type=float, default=0.0, help="DART: executed joint commands get Ornstein-Uhlenbeck noise of this std (rad); the clean expert command is recorded as the action")
+ap.add_argument("--dart_p", type=float, default=0.7, help="fraction of episodes that get DART noise")
 ap.add_argument("--skip_frames", type=int, default=30, help="do not record camera frames during the first control steps after a reset")
 ap.add_argument("--tasks", default="", help="comma list overriding the spec's task types (e.g. hold one out for few-shot tests)")
 ap.add_argument("--only_success", type=int, default=1, help="with --out: keep only episodes that pass the task's success check")
@@ -102,6 +104,8 @@ def main():
         os.makedirs(a.cosmos_dir, exist_ok=True); cw = [CosmosWriter(a.cosmos_dir, i) for i in range(env.n)]
         for w_ in cw:
             w_.start()
+    nrng = np.random.default_rng(a.seed + 555)
+    dart_n = np.zeros((env.n, 6)); dart_on = (nrng.random(env.n) < a.dart_p).astype(float)
     t0 = time.time()
     # asynchronous episodes: an env that finishes is scored, saved and reset on its own, the others keep running
     while n_done < a.episodes:
@@ -109,6 +113,10 @@ def main():
             E_ = env.ep[i]
             max_bottom[i] = max(max_bottom[i], env.pos(E_["obj"])[i][2] + tt.OBJ_META[E_["obj"]]["zmin"])
         cmd = runner.step()
+        exe = cmd
+        if a.dart_sigma > 0:      # executed = clean + correlated noise on the 5 arm joints; recorded action stays clean
+            dart_n[:, :5] = 0.9 * dart_n[:, :5] + a.dart_sigma * 0.436 * nrng.standard_normal((env.n, 5))
+            exe = cmd + dart_n * dart_on[:, None]
         S = env.state()
         rec = env.t % 3 == 0
         vis_frame = bool(a.video) and ep0_count < a.video_eps
@@ -146,7 +154,7 @@ def main():
                     if good and st["node"] not in seen and 0 <= u < hf.shape[1] and 0 <= v < hf.shape[0]:
                         seen.add(st["node"]); d.text((u + 6, v + 46 - 16), str(st["node"]), font=FONT_B, fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
             frames.append(np.asarray(canvas))
-        env.step(cmd)
+        env.step(exe)
         finished = [i for i in range(env.n) if runner.done[i] or env.t[i] >= a.max_steps]
         if not finished:
             continue
@@ -161,7 +169,7 @@ def main():
                       retries=int(runner.retries[i]), lifted_cm=round(100 * max_bottom[i], 1), end_bottom_cm=round(100 * (p_end[2] + tt.OBJ_META[E["obj"]]["zmin"]), 1),
                       end_dist_cm=round(100 * float(np.linalg.norm(p_end[:2] - tgt_xy)), 1) if tgt else None, upright=round(float(up_z), 2),
                       jaw=round(float(S[i, 5]), 2), el=round(time.time() - t0), texture=os.path.basename(tt.TEX[E["table_mat"]]),
-                      dr=E.get("dr"), hdri=getattr(env, "hdri", None),
+                      dr=E.get("dr"), hdri=getattr(env, "hdri", None), dart=float(a.dart_sigma * dart_on[i]),
                       layout={k: [float(v[0][0]), float(v[0][1]), float(v[1])] for k, v in E["layout"].items()})
             attempts += 1
             if i == 0:
@@ -189,6 +197,7 @@ def main():
         env.reset(env_ids=finished, episodes=[sample_ok() for _ in finished], settle=0)
         for i in finished:
             runner.reset_env(i)
+            dart_n[i] = 0; dart_on[i] = float(nrng.random() < a.dart_p)
         if markers is not None and 0 in finished:
             markers.set_visibility(ep0_count < a.video_eps)
     if a.video and frames:

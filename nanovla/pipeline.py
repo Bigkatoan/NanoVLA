@@ -82,7 +82,7 @@ def sh(st, stage, cmd, gpu=True, total=None, env=None):
     """run one stage command, follow its log for progress; raise on failure"""
     log = os.path.join(jdir(st["id"]), f"{stage}.log")
     full = ([P.GPU, "86400"] if gpu else []) + cmd
-    e = dict(os.environ, HF_HUB_OFFLINE=os.environ.get("HF_HUB_OFFLINE", "1"), PYTHONPATH=P.ROOT, **(env or {}))
+    e = dict(os.environ); e.setdefault("HF_HUB_OFFLINE", "1"); e["PYTHONPATH"] = P.ROOT; e.update(env or {})
     with open(log, "w") as fh:
         fh.write("$ " + " ".join(full) + "\n"); fh.flush()
         p = subprocess.Popen(full, cwd=P.ROOT, stdout=fh, stderr=subprocess.STDOUT, env=e)
@@ -164,6 +164,9 @@ def run(jid):
                 root = os.path.abspath(pr["dataset"]); M.prepare(root); d = M.describe(root)
                 if st["kind"] == "distill":
                     tr, te = M.default_split(d)
+                    cap = int(pr.get("max_train_per_task", 0))             # large datasets: keep at most N demos per instruction
+                    if cap:
+                        keep = set(e for v in d["episodes_by_task"].values() for e in [x for x in v if x not in te][:cap]); tr = [e for e in tr if e in keep]
                     pr.setdefault("train", tr); pr.setdefault("test", te)
                     if not pr["test"]:
                         raise ValueError("need at least 2 episodes of some task to hold one out for testing")

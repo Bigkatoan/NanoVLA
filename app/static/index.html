@@ -8,16 +8,16 @@
 /* Layout: left rail = the 4-step workflow (where am I, what is next); one focused workspace; activity bar at the top
    shows running jobs from anywhere. Spacing scale 4/8/12/16/24/32, type scale 12/13/14/16/20/24. */
 :root {
-  --bg:#f4f5f2; --surface:#ffffff; --sunken:#eef0ec; --fg:#18201c; --mut:#5d6963; --faint:#8a948f; --line:#dde2dd;
-  --acc:#246b4c; --acc-fg:#ffffff; --acc-soft:#e3efe8; --warn:#9a5a12; --warn-soft:#f8eddc; --bad:#a63a2a; --bad-soft:#f7e3df;
+  --bg:#f4f4f4; --surface:#ffffff; --sunken:#ededed; --fg:#111111; --mut:#555555; --faint:#8c8c8c; --line:#dcdcdc;
+  --acc:#111111; --acc-fg:#ffffff; --acc-soft:#e9e9e9; --warn:#333333; --warn-soft:#f1f1f1; --bad:#000000; --bad-soft:#e6e6e6;
   --r:10px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root {
-  --bg:#101412; --surface:#171d1a; --sunken:#121715; --fg:#e4eae6; --mut:#9aa6a0; --faint:#6d7873; --line:#26302b;
-  --acc:#5cbf8f; --acc-fg:#0d1a13; --acc-soft:#1b2e24; --warn:#e3a35c; --warn-soft:#2e2416; --bad:#e8826f; --bad-soft:#331d19; color-scheme: dark; } }
+  --bg:#0c0c0c; --surface:#161616; --sunken:#1f1f1f; --fg:#f2f2f2; --mut:#a8a8a8; --faint:#6e6e6e; --line:#2c2c2c;
+  --acc:#f2f2f2; --acc-fg:#0c0c0c; --acc-soft:#262626; --warn:#d6d6d6; --warn-soft:#1c1c1c; --bad:#ffffff; --bad-soft:#2a2a2a; color-scheme: dark; } }
 * { box-sizing: border-box; }
 html, body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-a { color:var(--acc); }
+a { color:var(--fg); }
 button, input, select { font:inherit; color:inherit; }
 :focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
 @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
@@ -34,19 +34,19 @@ button, input, select { font:inherit; color:inherit; }
 .steps .n { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font:600 12px var(--mono); border:1.5px solid var(--line); color:var(--mut); background:var(--surface); }
 .steps a[aria-current="page"] .n { border-color:var(--acc); color:var(--acc); }
 .steps .n.done { background:var(--acc); border-color:var(--acc); color:var(--acc-fg); }
-.steps .t { font-weight:600; font-size:13.5px; line-height:1.25; } .steps .s { display:block; font-weight:400; font-size:12px; color:var(--mut); margin-top:2px; }
+.steps .t { font-weight:600; font-size:13.5px; line-height:1.25; min-width:0; } .steps .s { display:block; font-weight:400; font-size:12px; color:var(--mut); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .rail .sep { border-top:1px solid var(--line); margin:0 8px; }
 .sys { padding:0 8px; display:flex; flex-direction:column; gap:8px; font-size:12.5px; }
 .sys div { display:flex; align-items:center; gap:8px; color:var(--mut); }
 .dot { width:8px; height:8px; border-radius:50%; background:var(--faint); flex:none; }
-.dot.ok { background:var(--acc); } .dot.warn { background:var(--warn); } .dot.bad { background:var(--bad); }
+.dot { border:1.5px solid var(--faint); background:none; } .dot.ok { background:var(--fg); border-color:var(--fg); } .dot.warn { border-color:var(--fg); border-style:dashed; } .dot.bad { border-color:var(--fg); background:repeating-linear-gradient(45deg, var(--fg) 0 2px, transparent 2px 4px); }
 .rail .foot { margin-top:auto; padding:0 8px; font-size:12.5px; }
 
 .top { display:flex; align-items:center; gap:12px; min-height:56px; padding:8px max(24px, env(safe-area-inset-right)) 8px 28px; border-bottom:1px solid var(--line); background:var(--surface); position:sticky; top:0; z-index:5; }
 .top h1 { font-size:17px; margin:0; font-weight:650; }
 .activity { margin-left:auto; display:flex; align-items:center; gap:10px; background:none; border:1px solid var(--line); border-radius:99px; padding:6px 14px 6px 12px; cursor:pointer; font-size:13px; color:var(--mut); }
-.activity.live { border-color:var(--warn); color:var(--fg); }
-.activity .bar { width:72px; height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; } .activity .bar i { display:block; height:100%; background:var(--warn); width:0; }
+.activity.live { border-color:var(--fg); color:var(--fg); }
+.activity .bar { width:72px; height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; } .activity .bar i { display:block; height:100%; background:var(--fg); width:0; }
 .work { padding:28px max(24px, env(safe-area-inset-right)) 56px 28px; max-width:960px; }
 .lead { color:var(--mut); margin:0 0 24px; max-width:64ch; }
 
@@ -68,9 +68,9 @@ input[type=checkbox] { width:16px; height:16px; accent-color:var(--acc); }
 .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; min-height:40px; padding:0 16px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-weight:600; cursor:pointer; text-decoration:none; color:var(--fg); }
 .btn:hover { border-color:var(--faint); }
 .btn.primary { background:var(--acc); border-color:var(--acc); color:var(--acc-fg); }
-.btn.primary:hover { filter:brightness(1.06); }
+.btn.primary:hover { opacity:.88; }
 .btn.ghost { border-color:transparent; background:none; color:var(--mut); }
-.btn.danger { color:var(--bad); }
+.btn.danger { color:var(--fg); border-color:var(--fg); }
 .btn:disabled { opacity:.45; cursor:not-allowed; }
 .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:24px; }
 .hint { color:var(--mut); font-size:13px; }
@@ -79,13 +79,15 @@ details.adv summary { cursor:pointer; color:var(--mut); font-size:13px; font-wei
 details.adv summary::before { content:"▸ "; } details.adv[open] summary::before { content:"▾ "; }
 details.adv .fields, details.adv > p { margin-top:14px; }
 .badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:2px 9px; border-radius:99px; background:var(--sunken); color:var(--mut); white-space:nowrap; }
-.badge.ok { background:var(--acc-soft); color:var(--acc); } .badge.warn { background:var(--warn-soft); color:var(--warn); } .badge.bad { background:var(--bad-soft); color:var(--bad); }
+.badge.ok { background:var(--acc); color:var(--acc-fg); } .badge.warn { background:none; color:var(--fg); border:1px dashed var(--fg); padding:1px 8px; } .badge.bad { background:none; color:var(--fg); border:1.5px solid var(--fg); padding:1px 8px; }
+.badge.bad::before { content:"!"; font-weight:800; }
 .note { padding:12px 14px; border-radius:8px; background:var(--sunken); color:var(--mut); font-size:13px; }
-.note.warn { background:var(--warn-soft); color:var(--warn); } .note.bad { background:var(--bad-soft); color:var(--bad); }
+.note.warn, .note.bad { background:var(--surface); color:var(--fg); border:1px solid var(--line); border-left:3px solid var(--fg); }
+.note.bad { font-weight:500; }
 .list { display:flex; flex-direction:column; }
 .item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 16px; align-items:center; padding:14px 20px; border:0; border-top:1px solid var(--line); cursor:pointer; text-align:left; background:none; width:100%; }
 .item:first-child { border-top:0; } .item:hover { background:var(--sunken); }
-.item[aria-selected="true"] { background:var(--acc-soft); box-shadow:inset 3px 0 0 var(--acc); }
+.item[aria-selected="true"] { background:var(--acc-soft); box-shadow:inset 3px 0 0 var(--fg); }
 .item b { font-size:14px; overflow-wrap:anywhere; } .item .meta { color:var(--mut); font-size:12.5px; grid-column:1; }
 .item .right { grid-row:1 / span 2; grid-column:2; display:flex; gap:6px; align-items:center; }
 .split { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.2fr); gap:16px; align-items:start; }
@@ -103,19 +105,19 @@ details.adv .fields, details.adv > p { margin-top:14px; }
 .flow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:12.5px; color:var(--mut); margin:8px 0 0; } .flow span { padding:3px 9px; border-radius:6px; background:var(--sunken); color:var(--fg); }
 .metric { display:grid; grid-template-columns:130px minmax(0,1fr) 64px; gap:12px; align-items:center; font-size:13px; margin:10px 0; }
 .metric .track { height:8px; background:var(--sunken); border-radius:4px; overflow:hidden; } .metric .track i { display:block; height:100%; border-radius:4px; background:var(--acc); }
-.metric .track i.t { background:var(--faint); } .metric .v { text-align:right; font-family:var(--mono); }
+.metric .track i.t { background:repeating-linear-gradient(90deg, var(--faint) 0 6px, transparent 6px 8px); } .metric .v { text-align:right; font-family:var(--mono); }
 .timeline { list-style:none; margin:10px 0 0; padding:0; }
 .timeline li { display:grid; grid-template-columns:22px minmax(0,1fr) auto; gap:10px; align-items:start; padding:6px 0; font-size:13.5px; }
 .timeline .ic { width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); margin-top:1px; display:grid; place-items:center; font-size:11px; font-weight:700; }
 .timeline .done .ic { background:var(--acc); border-color:var(--acc); color:var(--acc-fg); }
-.timeline .running .ic { border-color:var(--warn); border-top-color:transparent; animation:spin 1s linear infinite; }
-.timeline .failed .ic { background:var(--bad); border-color:var(--bad); color:#fff; }
+.timeline .running .ic { border-color:var(--fg); border-top-color:transparent; animation:spin 1s linear infinite; }
+.timeline .failed .ic { background:var(--surface); border:2px solid var(--fg); color:var(--fg); }
 .timeline .pending { color:var(--faint); } .timeline .dur { color:var(--mut); font-family:var(--mono); font-size:12px; }
 @keyframes spin { to { transform:rotate(360deg); } }
-.prog { height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; margin-top:6px; } .prog i { display:block; height:100%; background:var(--warn); }
+.prog { height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; margin-top:6px; } .prog i { display:block; height:100%; background:var(--fg); }
 pre.log { font:12px/1.5 var(--mono); background:var(--sunken); border-radius:8px; padding:12px; max-height:300px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; margin:12px 0 0; color:var(--mut); }
 dialog { border:1px solid var(--line); border-radius:12px; padding:0; width:min(560px, calc(100vw - 32px)); background:var(--surface); color:var(--fg); }
-dialog::backdrop { background:rgba(10,14,12,.45); }
+dialog::backdrop { background:rgba(0,0,0,.5); }
 dialog .pb { max-height:70vh; overflow:auto; }
 dialog .df { display:flex; justify-content:flex-end; gap:10px; padding:14px 20px; border-top:1px solid var(--line); }
 .drawer { position:fixed; top:0; right:0; height:100vh; width:min(440px, 100vw); background:var(--surface); border-left:1px solid var(--line); z-index:20; display:flex; flex-direction:column; box-shadow:-12px 0 32px rgba(0,0,0,.10); }
@@ -175,6 +177,7 @@ const STAGE = {prepare:"Kiểm tra dataset", fewshot:"Dạy thầy tác vụ m�
 function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 4000); }
 const dur = s => s < 60 ? Math.max(1, Math.round(s)) + " giây" : s < 3600 ? Math.round(s / 60) + " phút" : (s / 3600).toFixed(1).replace(".", ",") + " giờ";
 const ago = t => { const s = Date.now() / 1000 - t; return s < 90 ? "vừa xong" : s < 3600 ? Math.round(s / 60) + " phút trước" : s < 86400 ? Math.round(s / 3600) + " giờ trước" : Math.round(s / 86400) + " ngày trước"; };
+const nice = n => { const [o, r] = String(n).includes("__") ? String(n).split("__") : ["", n]; return {name:r, owner:o}; };
 const deg = v => v == null ? "–" : v.toFixed(2).replace(".", ",") + "°";
 function friendly(err) {
   const e = String(err || "");
@@ -254,7 +257,7 @@ function viewData() {
       <div class="panel"><div class="ph"><h2>Dataset</h2><span class="badge" style="margin-left:auto">${L.length}</span></div>
         <div class="list" role="listbox" aria-label="Dataset">${L.map(d => `
           <button class="item" role="option" data-n="${esc(d.name)}" aria-selected="${S.sel === d.name}">
-            <b>${esc(d.name)}</b><span class="meta">${d.episodes ?? "?"} demo · ${Object.keys(d.tasks || {}).length} câu lệnh</span>
+            <b>${esc(nice(d.name).name)}</b><span class="meta">${nice(d.name).owner ? esc(nice(d.name).owner) + " · " : ""}${d.episodes ?? "?"} demo · ${Object.keys(d.tasks || {}).length} câu lệnh</span>
             <span class="right">${dsBadge(d)}</span></button>`).join("") || `<div class="empty"><b>Chưa có dataset</b>Ghi demo ở bước 1, hoặc tải dataset công khai bên dưới.</div>`}
         </div>
       </div>
@@ -270,7 +273,7 @@ function viewData() {
     try { await post("/api/jobs", {kind:"import", params:{repo_ids:[r], name:r.replace("/", "__")}}); toast("Đang tải " + r); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
   if (S.sel) dsDetail(S.sel).then(d => {
     const ok = d.ready && d.joint_unit === "degrees";
-    $("#ds-detail").innerHTML = `<div class="ph"><div><h2>${esc(d.name)}</h2><p>${d.episodes} demo · ${(d.frames || 0).toLocaleString("vi")} frame · ${d.fps} fps</p></div><span style="margin-left:auto">${dsBadge(d)}</span></div>
+    $("#ds-detail").innerHTML = `<div class="ph"><div><h2>${esc(nice(d.name).name)}</h2><p>${nice(d.name).owner ? "Hugging Face: " + esc(nice(d.name).owner) + " · " : ""}${d.episodes} demo · ${(d.frames || 0).toLocaleString("vi")} frame · ${d.fps} fps</p></div><span style="margin-left:auto">${dsBadge(d)}</span></div>
       <div class="pb">
         ${ok ? "" : `<div class="note warn" style="margin-bottom:16px">${d.ready ? "" : "Tên camera chưa đúng chuẩn, sẽ được sửa tự động khi distill. "}${d.joint_unit !== "degrees" ? "Không chắc góc khớp tính bằng độ; model có thể sai đơn vị." : ""}</div>`}
         <ul class="tasks">${Object.entries(d.tasks).map(([t, c]) => `<li><span>${esc(t)}</span><span class="c">${c} demo</span></li>`).join("")}</ul>
@@ -281,6 +284,7 @@ function viewData() {
 
 // ------------------------------------------------------------------ 3 distill
 function viewDistill() {
+  if (!S.sel && S.ds.length) S.sel = S.ds[0].name;
   const d = S.ds.find(x => x.name === S.sel);
   if (!d) { $("#work").innerHTML = `<div class="panel"><div class="empty"><b>Chưa chọn dataset</b><a href="#data">Chọn dataset ở bước 2</a></div></div>`; return; }
   const noTeacher = !S.status?.teacher;
@@ -289,9 +293,9 @@ function viewDistill() {
   <div class="stack">
   ${noTeacher ? `<div class="note bad" role="alert">Chưa có model thầy. <a href="#settings">Cài đặt model thầy</a> trước.</div>` : ""}
   <form class="panel" id="f-distill" novalidate>
-    <div class="ph"><div><h2>${esc(d.name)}</h2><p>${d.episodes} demo · ${Object.keys(d.tasks || {}).length} câu lệnh</p></div><a class="btn ghost" href="#data" style="margin-left:auto">Đổi dataset</a></div>
+    <div class="ph"><div><h2>${esc(nice(d.name).name)}</h2><p>${d.episodes} demo · ${Object.keys(d.tasks || {}).length} câu lệnh</p></div><a class="btn ghost" href="#data" style="margin-left:auto">Đổi dataset</a></div>
     <div class="pb">
-      <div class="fields"><label class="field wide"><span>Tên model</span><input type="text" id="x-name" required pattern="[A-Za-z0-9_\\-]+" value="${esc(d.name)}"><small>Trùng tên với model cũ sẽ ghi đè.</small></label></div>
+      <div class="fields"><label class="field wide"><span>Tên model</span><input type="text" id="x-name" required pattern="[A-Za-z0-9_\\-]+" value="${esc(nice(d.name).name.replace(/[^A-Za-z0-9_-]/g, "_"))}"><small>Trùng tên với model cũ sẽ ghi đè.</small></label></div>
       <div style="margin-top:20px"><span class="field"><span>Các bước sẽ chạy</span></span>
         <div class="flow"><span>Kiểm tra dataset</span>›<span>Dạy thầy</span>›<span>Đánh giá</span>›<span>Thầy gán nhãn</span>›<span>Train trò</span>›<span>Đóng gói</span></div>
         <p class="hint" style="margin:10px 0 0">Khoảng 1,5–2 giờ trên RTX 3060. Có thể đóng trang, tác vụ vẫn chạy.</p></div>
@@ -336,7 +340,7 @@ function viewModels() {
           ${dag.length ? `<div class="fields"><label class="field"><span>Lần ghi từ robot</span><select id="m-dg">${dag.map(d => `<option>${esc(d.name)}</option>`).join("")}</select></label>
             <div class="field" style="justify-content:flex-end"><button class="btn" type="button" id="m-dagger">Cải thiện model</button></div></div>` : `<div class="note" style="margin-top:12px">Chưa có lần ghi nào từ robot.</div>`}</details>
         <details class="adv"><summary>Chi tiết</summary><dl class="kv">
-          <dt>Câu lệnh</dt><dd>${m.tasks.map(esc).join("<br>")}</dd><dt>Dataset</dt><dd>${esc((m.dataset || "").split("/").pop())}</dd>
+          <dt>Câu lệnh</dt><dd>${m.tasks.map(esc).join("<br>")}</dd><dt>Dataset</dt><dd>${esc(nice((m.dataset || "").split("/").pop()).name)}</dd>
           <dt>Kẹp (trò / thầy)</dt><dd class="num">${(m.student?.mae10_grip ?? 0).toFixed(2)} / ${(m.teacher?.mae10_grip ?? 0).toFixed(2)} trên thang 0–100</dd>
           <dt>Cả chuỗi 1,7 giây</dt><dd class="num">${deg(m.student?.mae50_arm)} / ${deg(m.teacher?.mae50_arm)}</dd></dl></details>
       </div>` : `<div class="empty"><b>Chọn một model</b></div>`}</div>
@@ -434,7 +438,7 @@ function renderChrome() {
     set("gpu", s.gpu_busy ? "warn" : "ok", s.gpu_busy ? "GPU đang bận" : "GPU rảnh");
     const n = s.devices.serial.length; set("robot", n >= 2 ? "ok" : n ? "warn" : "", n >= 2 ? "Robot và leader đã cắm" : n ? "Mới cắm 1 thiết bị" : "Chưa cắm robot");
   }
-  $("#sub-data").textContent = S.ds.length ? (S.sel || S.ds.length + " dataset") : "Chưa có";
+  $("#sub-data").textContent = S.ds.length ? (S.sel ? nice(S.sel).name : S.ds.length + " dataset") : "Chưa có";
   $("#sub-models").textContent = S.models.length ? S.models.length + " model" : "Chưa có";
   const done = {collect:S.ds.length > 0, data:!!S.sel, distill:S.models.length > 0, models:S.jobs.some(j => j.kind === "run" && j.status === "done")};
   document.querySelectorAll(".steps a").forEach(a => a.querySelector(".n").classList.toggle("done", !!done[a.dataset.step] && !a.hasAttribute("aria-current")));

@@ -115,6 +115,12 @@ async def api_new_job(req):
     return web.json_response(st)
 
 
+async def api_retry(req):
+    st = PL.load(req.match_info["id"]); pr = {k: v for k, v in st["params"].items() if k in ("dataset", "name", "model", "task", "episodes", "episode_s", "reset_s", "robot_port",
+        "robot_id", "leader_port", "leader_id", "wrist_cam", "front_cam", "fewshot_steps", "student_steps", "aug", "repo_ids", "max_datasets", "steps", "seconds", "record", "dry_run", "teacher_ckpt")}
+    return web.json_response(await asyncio.get_event_loop().run_in_executor(None, PL.new, st["kind"], pr))
+
+
 async def api_stop(req):
     return web.json_response(PL.stop(req.match_info["id"]))
 
@@ -131,7 +137,7 @@ def main():
     app = web.Application()
     app.add_routes([web.get("/", index), web.get("/api/status", api_status), web.get("/api/datasets", api_datasets), web.get("/api/datasets/{name}", api_dataset),
                     web.get("/api/models", api_models), web.get("/api/jobs", api_jobs), web.get("/api/jobs/{id}", api_job), web.post("/api/jobs", api_new_job),
-                    web.post("/api/jobs/{id}/stop", api_stop), web.get("/models/{name}.zip", model_zip), web.static("/static", STATIC)])
+                    web.post("/api/jobs/{id}/stop", api_stop), web.post("/api/jobs/{id}/retry", api_retry), web.get("/models/{name}.zip", model_zip), web.static("/static", STATIC)])
     print(json.dumps(dict(event="ready", url=f"http://{a.host}:{a.port}")), flush=True)
     web.run_app(app, host=a.host, port=a.port, print=None)
 

@@ -5,261 +5,461 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NanoVLA Studio</title>
 <style>
-/* layout: top bar with the 4 pipeline steps as tabs, one working panel below, running jobs always visible on the right */
-:root { --bg:#f5f6f3; --panel:#ffffff; --fg:#1b221e; --mut:#66716b; --line:#dbe0dc; --acc:#2c7a57; --acc-soft:#e1efe7;
-        --warn:#b0602a; --bad:#b2402f; --mono: ui-monospace, "JetBrains Mono", Menlo, monospace; color-scheme: light; }
-@media (prefers-color-scheme: dark) { :root { --bg:#111513; --panel:#191f1c; --fg:#e3e9e5; --mut:#8f9b95; --line:#29322e; --acc:#62c495; --acc-soft:#1d3127; --warn:#e09a5f; --bad:#e2735f; color-scheme: dark; } }
+/* Layout: left rail = the 4-step workflow (where am I, what is next); one focused workspace; activity bar at the top
+   shows running jobs from anywhere. Spacing scale 4/8/12/16/24/32, type scale 12/13/14/16/20/24. */
+:root {
+  --bg:#f4f5f2; --surface:#ffffff; --sunken:#eef0ec; --fg:#18201c; --mut:#5d6963; --faint:#8a948f; --line:#dde2dd;
+  --acc:#246b4c; --acc-fg:#ffffff; --acc-soft:#e3efe8; --warn:#9a5a12; --warn-soft:#f8eddc; --bad:#a63a2a; --bad-soft:#f7e3df;
+  --r:10px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg:#101412; --surface:#171d1a; --sunken:#121715; --fg:#e4eae6; --mut:#9aa6a0; --faint:#6d7873; --line:#26302b;
+  --acc:#5cbf8f; --acc-fg:#0d1a13; --acc-soft:#1b2e24; --warn:#e3a35c; --warn-soft:#2e2416; --bad:#e8826f; --bad-soft:#331d19; color-scheme: dark; } }
 * { box-sizing: border-box; }
-body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-header { display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px; padding:12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); border-bottom:1px solid var(--line); background:var(--panel); }
-header h1 { font-size:17px; margin:0; letter-spacing:.01em; }
-nav { display:flex; flex-wrap:wrap; gap:4px; }
-nav a { text-decoration:none; color:var(--mut); padding:6px 12px; border-radius:7px; font-weight:500; }
-nav a b { font:600 11px var(--mono); margin-right:6px; opacity:.7; }
-nav a.on { background:var(--acc-soft); color:var(--acc); }
-.st { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
-.pill { font:12px var(--mono); padding:2px 9px; border-radius:99px; border:1px solid var(--line); color:var(--mut); }
-.pill.ok { color:var(--acc); border-color:var(--acc); } .pill.bad { color:var(--bad); border-color:var(--bad); } .pill.busy { color:var(--warn); border-color:var(--warn); }
-main { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; padding:16px max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left)); max-width:1300px; margin:0 auto; }
-@media (max-width: 900px) { main { grid-template-columns:minmax(0,1fr); } }
-section.card, aside .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; min-width:0; }
-h2 { font-size:15px; margin:0 0 4px; } .sub { color:var(--mut); margin:0 0 14px; font-size:13px; }
-h3 { font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--mut); margin:18px 0 8px; font-weight:600; }
-.grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px 14px; }
-label { display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--mut); }
-input, select { font:inherit; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:7px 9px; min-width:0; }
-input:focus, select:focus, button:focus-visible { outline:2px solid var(--acc); outline-offset:1px; }
-button { font:inherit; font-weight:600; border:1px solid var(--line); background:var(--panel); color:var(--fg); padding:8px 14px; border-radius:8px; cursor:pointer; }
-button.primary { background:var(--acc); border-color:var(--acc); color:#fff; } button:disabled { opacity:.5; cursor:default; }
-button.small { padding:4px 10px; font-size:12.5px; font-weight:500; }
-.row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; }
-.tbl { overflow-x:auto; } table { border-collapse:collapse; width:100%; font-size:13px; }
-th { text-align:left; color:var(--mut); font-weight:600; font-size:12px; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
-td { padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; } tr.sel td { background:var(--acc-soft); } tbody tr { cursor:pointer; }
-.num { font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
-.tag { display:inline-block; font:11.5px var(--mono); padding:1px 7px; border-radius:5px; background:var(--bg); border:1px solid var(--line); margin:1px 2px 1px 0; }
-.tag.ok { color:var(--acc); border-color:var(--acc); } .tag.bad { color:var(--bad); border-color:var(--bad); }
-.job { border-top:1px solid var(--line); padding:10px 0; } .job:first-child { border-top:0; padding-top:0; }
-.job .t { display:flex; justify-content:space-between; gap:8px; font-weight:600; font-size:13px; }
-.stages { display:flex; gap:3px; margin:7px 0 4px; } .stages i { flex:1; height:6px; border-radius:3px; background:var(--line); }
-.stages i.done { background:var(--acc); } .stages i.running { background:var(--warn); } .stages i.failed { background:var(--bad); }
-.muted { color:var(--mut); font-size:12.5px; } .err { color:var(--bad); font-size:12.5px; white-space:pre-wrap; overflow-wrap:anywhere; }
-pre.log { font:11.5px/1.45 var(--mono); background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:8px; max-height:240px; overflow:auto; white-space:pre-wrap; word-break:break-all; margin:8px 0 0; }
-.models { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px; }
-.model { border:1px solid var(--line); border-radius:9px; padding:12px; min-width:0; }
-.model h4 { margin:0 0 2px; font-size:14px; } .kv { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:12.5px; margin:8px 0; }
-.kv span:nth-child(odd) { color:var(--mut); } code.cmd { display:block; font:11.5px var(--mono); background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:8px; overflow-x:auto; white-space:pre; }
-.steps { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; } .steps span { font-size:12.5px; color:var(--mut); }
-.empty { color:var(--mut); padding:18px 0; }
+html, body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color:var(--acc); }
+button, input, select { font:inherit; color:inherit; }
+:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+[hidden] { display:none !important; }
+
+/* ---------- shell */
+.shell { display:grid; grid-template-columns:232px minmax(0,1fr); min-height:100vh; }
+.rail { background:var(--surface); border-right:1px solid var(--line); padding:20px 12px; display:flex; flex-direction:column; gap:20px; position:sticky; top:0; height:100vh; }
+.brand { padding:0 8px; } .brand b { font-size:16px; letter-spacing:.01em; display:block; } .brand span { font-size:12px; color:var(--mut); }
+.steps { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+.steps a { display:grid; grid-template-columns:28px 1fr; gap:10px; align-items:center; padding:9px 8px; border-radius:8px; text-decoration:none; color:var(--fg); }
+.steps a:hover { background:var(--sunken); }
+.steps a[aria-current="page"] { background:var(--acc-soft); }
+.steps .n { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font:600 12px var(--mono); border:1.5px solid var(--line); color:var(--mut); background:var(--surface); }
+.steps a[aria-current="page"] .n { border-color:var(--acc); color:var(--acc); }
+.steps .n.done { background:var(--acc); border-color:var(--acc); color:var(--acc-fg); }
+.steps .t { font-weight:600; font-size:13.5px; line-height:1.25; } .steps .s { display:block; font-weight:400; font-size:12px; color:var(--mut); margin-top:2px; }
+.rail .sep { border-top:1px solid var(--line); margin:0 8px; }
+.sys { padding:0 8px; display:flex; flex-direction:column; gap:8px; font-size:12.5px; }
+.sys div { display:flex; align-items:center; gap:8px; color:var(--mut); }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--faint); flex:none; }
+.dot.ok { background:var(--acc); } .dot.warn { background:var(--warn); } .dot.bad { background:var(--bad); }
+.rail .foot { margin-top:auto; padding:0 8px; font-size:12.5px; }
+
+.top { display:flex; align-items:center; gap:12px; min-height:56px; padding:8px max(24px, env(safe-area-inset-right)) 8px 28px; border-bottom:1px solid var(--line); background:var(--surface); position:sticky; top:0; z-index:5; }
+.top h1 { font-size:17px; margin:0; font-weight:650; }
+.activity { margin-left:auto; display:flex; align-items:center; gap:10px; background:none; border:1px solid var(--line); border-radius:99px; padding:6px 14px 6px 12px; cursor:pointer; font-size:13px; color:var(--mut); }
+.activity.live { border-color:var(--warn); color:var(--fg); }
+.activity .bar { width:72px; height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; } .activity .bar i { display:block; height:100%; background:var(--warn); width:0; }
+.work { padding:28px max(24px, env(safe-area-inset-right)) 56px 28px; max-width:960px; }
+.lead { color:var(--mut); margin:0 0 24px; max-width:64ch; }
+
+/* ---------- components */
+.panel { background:var(--surface); border:1px solid var(--line); border-radius:var(--r); min-width:0; }
+.stack > * + * { margin-top:16px; }
+.ph { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; }
+.ph h2 { font-size:15px; margin:0; } .ph p { margin:2px 0 0; color:var(--mut); font-size:13px; }
+.pb { padding:20px; }
+.fields { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px 20px; }
+.fields .wide { grid-column:1 / -1; }
+@media (max-width: 640px) { .fields { grid-template-columns:minmax(0,1fr); } }
+.field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.field > span { font-size:13px; font-weight:600; } .field small { color:var(--mut); font-size:12px; }
+input[type=text], input[type=number], select { width:100%; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:9px 11px; min-height:40px; }
+input::placeholder { color:var(--faint); }
+input[type=checkbox] { width:16px; height:16px; accent-color:var(--acc); }
+.check { display:flex; align-items:center; gap:10px; font-size:13.5px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; min-height:40px; padding:0 16px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-weight:600; cursor:pointer; text-decoration:none; color:var(--fg); }
+.btn:hover { border-color:var(--faint); }
+.btn.primary { background:var(--acc); border-color:var(--acc); color:var(--acc-fg); }
+.btn.primary:hover { filter:brightness(1.06); }
+.btn.ghost { border-color:transparent; background:none; color:var(--mut); }
+.btn.danger { color:var(--bad); }
+.btn:disabled { opacity:.45; cursor:not-allowed; }
+.actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:24px; }
+.hint { color:var(--mut); font-size:13px; }
+details.adv { margin-top:20px; border-top:1px solid var(--line); padding-top:14px; }
+details.adv summary { cursor:pointer; color:var(--mut); font-size:13px; font-weight:600; list-style:none; } details.adv summary::-webkit-details-marker { display:none; }
+details.adv summary::before { content:"▸ "; } details.adv[open] summary::before { content:"▾ "; }
+details.adv .fields, details.adv > p { margin-top:14px; }
+.badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:2px 9px; border-radius:99px; background:var(--sunken); color:var(--mut); white-space:nowrap; }
+.badge.ok { background:var(--acc-soft); color:var(--acc); } .badge.warn { background:var(--warn-soft); color:var(--warn); } .badge.bad { background:var(--bad-soft); color:var(--bad); }
+.note { padding:12px 14px; border-radius:8px; background:var(--sunken); color:var(--mut); font-size:13px; }
+.note.warn { background:var(--warn-soft); color:var(--warn); } .note.bad { background:var(--bad-soft); color:var(--bad); }
+.list { display:flex; flex-direction:column; }
+.item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 16px; align-items:center; padding:14px 20px; border:0; border-top:1px solid var(--line); cursor:pointer; text-align:left; background:none; width:100%; }
+.item:first-child { border-top:0; } .item:hover { background:var(--sunken); }
+.item[aria-selected="true"] { background:var(--acc-soft); box-shadow:inset 3px 0 0 var(--acc); }
+.item b { font-size:14px; overflow-wrap:anywhere; } .item .meta { color:var(--mut); font-size:12.5px; grid-column:1; }
+.item .right { grid-row:1 / span 2; grid-column:2; display:flex; gap:6px; align-items:center; }
+.split { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.2fr); gap:16px; align-items:start; }
+@media (max-width: 880px) { .split { grid-template-columns:minmax(0,1fr); } }
+@media (max-width: 760px) {
+  .shell { grid-template-columns:minmax(0,1fr); }
+  .rail { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 12px; padding:10px 16px; border-right:0; border-bottom:1px solid var(--line); }
+  .brand span, .steps .s, .rail .sep, .sys, .rail .foot { display:none; } .steps { flex-direction:row; flex-wrap:wrap; } .steps a { grid-template-columns:24px auto; gap:6px; padding:6px 8px; } .steps .n { width:22px; height:22px; }
+  .top { position:static; padding-left:16px; } .work { padding:20px 16px 48px; } }
+.kv { display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 16px; font-size:13px; margin:12px 0 0; } .kv dt { color:var(--mut); } .kv dd { margin:0; overflow-wrap:anywhere; }
+.tasks { list-style:none; margin:0; padding:0; font-size:13.5px; } .tasks li { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); } .tasks li:first-child { border-top:0; padding-top:0; }
+.tasks .c { color:var(--mut); font-family:var(--mono); font-size:12px; white-space:nowrap; }
+.num { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+.empty { padding:40px 20px; text-align:center; color:var(--mut); } .empty b { display:block; color:var(--fg); font-size:15px; margin-bottom:4px; }
+.flow { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:12.5px; color:var(--mut); margin:8px 0 0; } .flow span { padding:3px 9px; border-radius:6px; background:var(--sunken); color:var(--fg); }
+.metric { display:grid; grid-template-columns:130px minmax(0,1fr) 64px; gap:12px; align-items:center; font-size:13px; margin:10px 0; }
+.metric .track { height:8px; background:var(--sunken); border-radius:4px; overflow:hidden; } .metric .track i { display:block; height:100%; border-radius:4px; background:var(--acc); }
+.metric .track i.t { background:var(--faint); } .metric .v { text-align:right; font-family:var(--mono); }
+.timeline { list-style:none; margin:10px 0 0; padding:0; }
+.timeline li { display:grid; grid-template-columns:22px minmax(0,1fr) auto; gap:10px; align-items:start; padding:6px 0; font-size:13.5px; }
+.timeline .ic { width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); margin-top:1px; display:grid; place-items:center; font-size:11px; font-weight:700; }
+.timeline .done .ic { background:var(--acc); border-color:var(--acc); color:var(--acc-fg); }
+.timeline .running .ic { border-color:var(--warn); border-top-color:transparent; animation:spin 1s linear infinite; }
+.timeline .failed .ic { background:var(--bad); border-color:var(--bad); color:#fff; }
+.timeline .pending { color:var(--faint); } .timeline .dur { color:var(--mut); font-family:var(--mono); font-size:12px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.prog { height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; margin-top:6px; } .prog i { display:block; height:100%; background:var(--warn); }
+pre.log { font:12px/1.5 var(--mono); background:var(--sunken); border-radius:8px; padding:12px; max-height:300px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; margin:12px 0 0; color:var(--mut); }
+dialog { border:1px solid var(--line); border-radius:12px; padding:0; width:min(560px, calc(100vw - 32px)); background:var(--surface); color:var(--fg); }
+dialog::backdrop { background:rgba(10,14,12,.45); }
+dialog .pb { max-height:70vh; overflow:auto; }
+dialog .df { display:flex; justify-content:flex-end; gap:10px; padding:14px 20px; border-top:1px solid var(--line); }
+.drawer { position:fixed; top:0; right:0; height:100vh; width:min(440px, 100vw); background:var(--surface); border-left:1px solid var(--line); z-index:20; display:flex; flex-direction:column; box-shadow:-12px 0 32px rgba(0,0,0,.10); }
+.drawer .ph { justify-content:space-between; } .drawer .body { overflow:auto; flex:1; }
+.job { padding:16px 20px; border-top:1px solid var(--line); } .job:first-child { border-top:0; }
+.job .row1 { display:flex; justify-content:space-between; gap:10px; align-items:center; } .job .row1 b { font-size:14px; }
+.job .actions { margin-top:12px; }
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--fg); color:var(--bg); padding:10px 16px; border-radius:8px; font-size:13.5px; z-index:40; max-width:calc(100vw - 32px); }
 </style>
 </head>
 <body>
-<header>
-  <h1>NanoVLA Studio</h1>
-  <nav>
-    <a href="#collect" data-tab="collect"><b>1</b>Thu thập</a>
-    <a href="#data" data-tab="data"><b>2</b>Dataset</a>
-    <a href="#distill" data-tab="distill"><b>3</b>Distill</a>
-    <a href="#models" data-tab="models"><b>4</b>Model</a>
-    <a href="#teacher" data-tab="teacher">Thầy</a>
+<div class="shell">
+  <nav class="rail" aria-label="Quy trình">
+    <div class="brand"><b>NanoVLA Studio</b><span>Dạy robot SO-101 tác vụ mới</span></div>
+    <ol class="steps">
+      <li><a href="#collect" data-step="collect"><span class="n">1</span><span class="t">Thu thập demo<span class="s" id="sub-collect">Ghi bằng tay leader</span></span></a></li>
+      <li><a href="#data" data-step="data"><span class="n">2</span><span class="t">Chọn dataset<span class="s" id="sub-data">–</span></span></a></li>
+      <li><a href="#distill" data-step="distill"><span class="n">3</span><span class="t">Distill<span class="s" id="sub-distill">Tạo model nhỏ</span></span></a></li>
+      <li><a href="#models" data-step="models"><span class="n">4</span><span class="t">Model và chạy robot<span class="s" id="sub-models">–</span></span></a></li>
+    </ol>
+    <div class="sep"></div>
+    <div class="sys" aria-label="Trạng thái hệ thống">
+      <div><i class="dot" id="d-teacher"></i><span id="t-teacher">Model thầy</span></div>
+      <div><i class="dot" id="d-gpu"></i><span id="t-gpu">GPU</span></div>
+      <div><i class="dot" id="d-robot"></i><span id="t-robot">Robot</span></div>
+    </div>
+    <div class="foot"><a href="#settings">Cài đặt model thầy</a></div>
   </nav>
-  <div class="st"><span id="s-teacher" class="pill">thầy …</span><span id="s-gpu" class="pill">GPU …</span></div>
-</header>
 
-<main>
-<div>
-  <!-- 1 collect -->
-  <section class="card" id="tab-collect" hidden>
-    <h2>Thu thập demo trên robot thật</h2>
-    <p class="sub">Điều khiển SO-101 bằng tay leader, ghi camera cổ tay + camera tổng quan, 30 fps, góc khớp theo độ. Mỗi tác vụ nên có ít nhất 2–4 demo.</p>
-    <div class="grid">
-      <label>Tên dataset<input id="c-name" placeholder="vd: pick_cup" value=""></label>
-      <label>Câu lệnh của tác vụ<input id="c-task" placeholder="vd: pick up the red cup"></label>
-      <label>Số episode<input id="c-eps" type="number" min="1" value="10"></label>
-      <label>Thời gian mỗi episode (s)<input id="c-eps-s" type="number" min="5" value="30"></label>
-      <label>Thời gian reset (s)<input id="c-reset" type="number" min="0" value="10"></label>
-      <label>Cổng robot follower<select id="c-port"></select></label>
-      <label>ID robot (calibration)<input id="c-rid" value="so101"></label>
-      <label>Cổng tay leader<select id="c-lport"></select></label>
-      <label>ID tay leader<input id="c-lid" value="leader"></label>
-      <label>Camera cổ tay (index)<input id="c-wcam" type="number" min="0" value="0"></label>
-      <label>Camera tổng quan (index)<input id="c-fcam" type="number" min="0" value="2"></label>
+  <div>
+    <div class="top">
+      <h1 id="title">–</h1>
+      <button class="activity" id="act" aria-controls="drawer" aria-expanded="false"><span id="act-t">Hoạt động</span><span class="bar" hidden><i></i></span></button>
     </div>
-    <div class="row"><button class="primary" id="c-go">Bắt đầu ghi</button><span class="muted" id="c-msg"></span></div>
-    <p class="muted">Ghi tiếp vào dataset đã có cùng tên. Thêm câu lệnh khác: chạy lại với cùng tên dataset và câu lệnh mới.</p>
-  </section>
-
-  <!-- 2 datasets -->
-  <section class="card" id="tab-data" hidden>
-    <h2>Chọn dataset</h2>
-    <p class="sub">Dataset trong <code>data/lerobot/</code>. Cần đúng 2 camera (cổ tay + tổng quan) và góc khớp theo độ.</p>
-    <div class="tbl"><table><thead><tr><th>Tên</th><th class="num">Episode</th><th class="num">Frame</th><th>Tác vụ</th><th>Camera</th><th>Đơn vị khớp</th></tr></thead><tbody id="d-rows"></tbody></table></div>
-    <div id="d-detail"></div>
-    <h3>Thêm dataset công khai từ Hugging Face</h3>
-    <div class="row" style="margin-top:0"><input id="d-repo" placeholder="owner/name, vd fport/tic-tac-toe-so101-x-round1-clean-v1" style="flex:1; min-width:220px"><button id="d-import">Tải về</button></div>
-    <p class="muted" id="d-msg"></p>
-  </section>
-
-  <!-- 3 distill -->
-  <section class="card" id="tab-distill" hidden>
-    <h2>Distill</h2>
-    <p class="sub">Few-shot thầy trên dataset → thầy gán nhãn → train trò chỉ dùng camera cổ tay → ONNX. Khoảng 1,5–2 giờ trên RTX 3060.</p>
-    <div class="steps"><span>prepare</span>›<span>few-shot thầy</span>›<span>đánh giá thầy</span>›<span>gán nhãn</span>›<span>train trò</span>›<span>đóng gói</span></div>
-    <div class="grid">
-      <label>Dataset<select id="x-ds"></select></label>
-      <label>Tên model<input id="x-name"></label>
-      <label>Bước few-shot thầy<input id="x-fs" type="number" value="2000" min="200" step="100"></label>
-      <label>Bước train trò<input id="x-st" type="number" value="12000" min="1000" step="1000"></label>
-      <label>Bản augment mỗi frame<input id="x-aug" type="number" value="2" min="0" max="4"></label>
-    </div>
-    <p class="muted" id="x-split"></p>
-    <div class="row"><button class="primary" id="x-go">Distill</button><span class="muted" id="x-msg"></span></div>
-  </section>
-
-  <!-- 4 models -->
-  <section class="card" id="tab-models" hidden>
-    <h2>Model</h2>
-    <p class="sub">Sai số offline trên episode test: trung bình 5 khớp tay, độ, 10 hành động đầu (0,33 s).</p>
-    <div class="models" id="m-list"></div>
-  </section>
-
-  <!-- teacher -->
-  <section class="card" id="tab-teacher" hidden>
-    <h2>Thầy (SmolVLA, 2 camera)</h2>
-    <p class="sub" id="t-info"></p>
-    <p class="muted">Train lại thầy: tự chọn dataset SO-101 công khai cùng quy ước góc (độ), tải, gộp, fine-tune SmolVLA 20.000 bước (~6 giờ, chiếm GPU).</p>
-    <div class="grid"><label>Số dataset tối đa<input id="t-max" type="number" value="5" min="1" max="12"></label><label>Bước train<input id="t-steps" type="number" value="20000" step="1000"></label><label>Tên<input id="t-name" value="smolvla_teacher"></label></div>
-    <div class="row"><button id="t-go">Train lại thầy</button><span class="muted" id="t-msg"></span></div>
-  </section>
+    <main class="work" id="work"></main>
+  </div>
 </div>
 
-<aside><div class="card"><h2>Đang chạy</h2><div id="jobs"><p class="empty">Chưa có job.</p></div></div></aside>
-</main>
+<aside class="drawer" id="drawer" hidden aria-label="Hoạt động">
+  <div class="ph"><h2>Hoạt động</h2><button class="btn ghost" id="drawer-x">Đóng</button></div>
+  <div class="body" id="drawer-body" aria-live="polite"></div>
+</aside>
+
+<dialog id="dlg"><form method="dialog"><div class="ph"><h2 id="dlg-title"></h2></div><div class="pb" id="dlg-body"></div><div class="df" id="dlg-foot"></div></form></dialog>
+<div class="toast" id="toast" hidden role="status"></div>
 
 <script>
-const $ = s => document.querySelector(s);
-const api = (u, o) => fetch(u, o).then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.statusText); return j; });
-const post = (u, b) => api(u, {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(b)});
-let DS = [], selDS = null, openJob = null, SERIAL = [];
-
-function tab() {
-  const t = (location.hash || "#data").slice(1);
-  document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.dataset.tab === t));
-  document.querySelectorAll("section.card").forEach(s => s.hidden = s.id !== "tab-" + t);
-}
-addEventListener("hashchange", tab);
-
-async function status() {
-  try {
-    const s = await api("/api/status");
-    $("#s-teacher").textContent = s.teacher ? "thầy sẵn sàng" : "chưa có thầy"; $("#s-teacher").className = "pill " + (s.teacher ? "ok" : "bad");
-    $("#s-gpu").textContent = s.gpu_busy ? "GPU bận" : "GPU rảnh"; $("#s-gpu").className = "pill " + (s.gpu_busy ? "busy" : "ok");
-    $("#t-info").textContent = s.teacher ? `Đang dùng: ${s.teacher_path}` : "Chưa có checkpoint thầy.";
-    SERIAL = s.devices.serial;
-    for (const id of ["#c-port", "#c-lport"]) {
-      const el = $(id), cur = el.value; el.innerHTML = s.devices.serial.map(p => `<option>${p}</option>`).join("") || "<option value=''>không thấy cổng serial</option>";
-      if (cur) el.value = cur;
-    }
-    if (!$("#c-lport").dataset.set && s.devices.serial.length > 1) { $("#c-lport").value = s.devices.serial[1]; $("#c-lport").dataset.set = 1; }
-  } catch (e) {}
+// ------------------------------------------------------------------ state + helpers
+const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const api = (u, o) => fetch(u, o).then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Máy chủ không phản hồi (" + r.status + ")"); return j; });
+const post = (u, b) => api(u, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(b || {})});
+const S = { status:null, ds:[], models:[], jobs:[], sel:null, selModel:null, dsDetail:{} };
+const KIND = {distill:"Distill", collect:"Thu thập demo", dagger:"Cải thiện model", teacher:"Train model thầy", import:"Tải dataset", run:"Chạy trên robot"};
+const STAGE = {prepare:"Kiểm tra dataset", fewshot:"Dạy thầy tác vụ mới", eval_teacher:"Đánh giá thầy", label_train:"Thầy gán nhãn", label_test:"Chuẩn bị bộ kiểm tra",
+  student:"Train model trò", package:"Đóng gói", record:"Ghi demo", robot:"Robot đang chạy", label_dagger:"Thầy sửa dữ liệu mới", download:"Tải về", prepare_import:"Chuẩn bị dataset",
+  select:"Chọn dataset công khai", merge:"Gộp dataset", train:"Train thầy"};
+function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 4000); }
+const dur = s => s < 60 ? Math.max(1, Math.round(s)) + " giây" : s < 3600 ? Math.round(s / 60) + " phút" : (s / 3600).toFixed(1).replace(".", ",") + " giờ";
+const ago = t => { const s = Date.now() / 1000 - t; return s < 90 ? "vừa xong" : s < 3600 ? Math.round(s / 60) + " phút trước" : s < 86400 ? Math.round(s / 3600) + " giờ trước" : Math.round(s / 86400) + " ngày trước"; };
+const deg = v => v == null ? "–" : v.toFixed(2).replace(".", ",") + "°";
+function friendly(err) {
+  const e = String(err || "");
+  if (/could not open port|\/dev\/tty|SerialException/i.test(e)) return "Không mở được cổng robot. Kiểm tra cáp USB rồi chọn lại cổng.";
+  if (/camera .* not available|VideoCapture|camera read failed/i.test(e)) return "Không đọc được camera. Kiểm tra số thứ tự camera.";
+  if (/CUDA out of memory|OutOfMemory/i.test(e)) return "GPU hết bộ nhớ. Đợi tác vụ khác xong rồi chạy lại.";
+  if (/one wrist camera and one overview camera/i.test(e)) return "Dataset cần đúng 2 camera: cổ tay và tổng quan.";
+  if (/at least 2 episodes/i.test(e)) return "Mỗi câu lệnh cần ít nhất 2 demo (1 demo được giữ lại để kiểm tra).";
+  if (/429|Too Many Requests/i.test(e)) return "Hugging Face đang giới hạn lượt tải. Thử lại sau vài phút.";
+  return "Bước này gặp lỗi. Xem log để biết chi tiết.";
 }
 
-async function loadDS() {
-  DS = await api("/api/datasets");
-  $("#d-rows").innerHTML = DS.map(d => `<tr data-n="${d.name}" class="${selDS === d.name ? "sel" : ""}"><td><b>${d.name}</b></td><td class="num">${d.episodes ?? "-"}</td><td class="num">${(d.frames ?? 0).toLocaleString()}</td>
-     <td>${Object.keys(d.tasks || {}).length} tác vụ</td><td>${d.ready ? '<span class="tag ok">cổ tay + tổng quan</span>' : '<span class="tag bad">' + Object.keys(d.cameras || {}).map(c => c.split(".").pop()).join(", ") + "</span>"}</td><td>${d.joint_unit || ""}</td></tr>`).join("")
-     || `<tr><td colspan="6" class="empty">Chưa có dataset. Thu thập ở bước 1 hoặc tải từ Hugging Face.</td></tr>`;
-  document.querySelectorAll("#d-rows tr[data-n]").forEach(tr => tr.onclick = () => pickDS(tr.dataset.n));
-  $("#x-ds").innerHTML = DS.map(d => `<option ${d.name === selDS ? "selected" : ""}>${d.name}</option>`).join("");
-  if (!selDS && DS.length) pickDS(DS[0].name, true);
+// ------------------------------------------------------------------ routing
+const PAGES = { collect:"Thu thập demo", data:"Chọn dataset", distill:"Distill", models:"Model và chạy robot", settings:"Cài đặt model thầy" };
+function route() {
+  const h = location.hash.slice(1), page = PAGES[h] ? h : (S.ds.length ? "data" : "collect");
+  document.querySelectorAll(".steps a").forEach(a => a.dataset.step === page ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  $("#title").textContent = PAGES[page]; document.title = PAGES[page] + " · NanoVLA Studio";
+  ({collect:viewCollect, data:viewData, distill:viewDistill, models:viewModels, settings:viewSettings})[page]();
+  renderChrome();
 }
-async function pickDS(n, quiet) {
-  selDS = n; $("#x-ds").value = n; if (!$("#x-name").dataset.touched) $("#x-name").value = n;
-  document.querySelectorAll("#d-rows tr").forEach(tr => tr.classList.toggle("sel", tr.dataset.n === n));
-  const d = await api("/api/datasets/" + encodeURIComponent(n));
-  $("#d-detail").innerHTML = `<h3>${d.name}</h3><div class="tbl"><table><thead><tr><th>Câu lệnh</th><th class="num">Episode</th></tr></thead><tbody>${Object.entries(d.tasks).map(([t, c]) => `<tr><td>${t}</td><td class="num">${c}</td></tr>`).join("")}</tbody></table></div>
-     <div class="row"><button class="primary" onclick="location.hash='#distill'">Distill dataset này →</button><span class="muted">train ${d.default_train.length} episode, test ${d.default_test.length} (1 episode mỗi câu lệnh)</span></div>`;
-  $("#x-split").textContent = `Chia tự động: ${d.default_train.length} episode train, ${d.default_test.length} episode test (giữ lại episode cuối của mỗi câu lệnh).` + (d.ready ? "" : " Camera sẽ được đổi tên về camera1/camera2 khi chạy.");
+addEventListener("hashchange", route);
+
+// ------------------------------------------------------------------ 1 collect
+function portOptions(sel) {
+  const ports = S.status?.devices.serial || [];
+  return ports.length ? ports.map(p => `<option ${p === sel ? "selected" : ""}>${esc(p)}</option>`).join("") : `<option value="">Chưa thấy thiết bị</option>`;
 }
-$("#x-ds").onchange = e => pickDS(e.target.value); $("#x-name").oninput = e => e.target.dataset.touched = 1;
-
-$("#x-go").onclick = async () => {
-  $("#x-msg").textContent = "";
-  try {
-    const d = DS.find(x => x.name === $("#x-ds").value);
-    const st = await post("/api/jobs", {kind:"distill", params:{dataset:d.root, name:$("#x-name").value.trim() || d.name, fewshot_steps:+$("#x-fs").value, student_steps:+$("#x-st").value, aug:+$("#x-aug").value}});
-    $("#x-msg").textContent = "Đã bắt đầu job " + st.id; openJob = st.id; jobs();
-  } catch (e) { $("#x-msg").textContent = e.message; }
-};
-$("#c-go").onclick = async () => {
-  $("#c-msg").textContent = "";
-  const p = {name:$("#c-name").value.trim(), task:$("#c-task").value.trim(), episodes:+$("#c-eps").value, episode_s:+$("#c-eps-s").value, reset_s:+$("#c-reset").value,
-             robot_port:$("#c-port").value, robot_id:$("#c-rid").value, leader_port:$("#c-lport").value, leader_id:$("#c-lid").value, wrist_cam:+$("#c-wcam").value, front_cam:+$("#c-fcam").value};
-  if (!p.name || !p.task || !p.robot_port || !p.leader_port) { $("#c-msg").textContent = "Cần tên dataset, câu lệnh và hai cổng serial."; return; }
-  try { const st = await post("/api/jobs", {kind:"collect", params:p}); $("#c-msg").textContent = "Đang ghi: job " + st.id; openJob = st.id; jobs(); } catch (e) { $("#c-msg").textContent = e.message; }
-};
-$("#d-import").onclick = async () => {
-  const r = $("#d-repo").value.trim(); if (!r.includes("/")) { $("#d-msg").textContent = "Nhập dạng owner/name."; return; }
-  try { const st = await post("/api/jobs", {kind:"import", params:{repo_ids:[r], name:r.replace("/", "__")}}); $("#d-msg").textContent = "Đang tải: job " + st.id; openJob = st.id; jobs(); } catch (e) { $("#d-msg").textContent = e.message; }
-};
-$("#t-go").onclick = async () => {
-  try { const st = await post("/api/jobs", {kind:"teacher", params:{max_datasets:+$("#t-max").value, steps:+$("#t-steps").value, name:$("#t-name").value.trim()}}); $("#t-msg").textContent = "Đã bắt đầu job " + st.id; jobs(); } catch (e) { $("#t-msg").textContent = e.message; }
-};
-
-const fmt = x => x == null ? "–" : (+x).toFixed(2);
-async function loadModels() {
-  const M = await api("/api/models");
-  $("#m-list").innerHTML = M.map(m => `<div class="model"><h4>${m.name}</h4><div class="muted">${m.created} · ${m.tasks.length} câu lệnh${m.dagger_rounds ? " · DAgger " + m.dagger_rounds + " vòng" : ""}</div>
-    <div class="kv"><span>Trò (cổ tay)</span><span class="num" style="text-align:left">${fmt(m.student.mae10_arm)}° · kẹp ${fmt(m.student.mae10_grip)}</span>
-      <span>Thầy (2 camera)</span><span class="num" style="text-align:left">${fmt(m.teacher.mae10_arm)}° · kẹp ${fmt(m.teacher.mae10_grip)}</span>
-      <span>Tốc độ trò</span><span class="num" style="text-align:left">${fmt(m.student.ms_fp16_3060)} ms (RTX 3060 fp16)</span></div>
-    <h3>Chạy trên robot</h3>
-    <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr))">
-      <label style="grid-column:1/-1">Câu lệnh<select id="r-task-${m.name}">${m.tasks.map(t => `<option>${t}</option>`).join("")}</select></label>
-      <label>Cổng robot<select id="r-port-${m.name}">${SERIAL.map(p => `<option>${p}</option>`).join("") || "<option value=''>không thấy</option>"}</select></label>
-      <label>ID robot<input id="r-rid-${m.name}" value="so101"></label>
-      <label>Cam cổ tay<input id="r-wcam-${m.name}" type="number" value="0" min="0"></label>
-      <label>Thời gian (s)<input id="r-sec-${m.name}" type="number" value="30" min="5"></label>
-      <label>Cam tổng quan (DAgger)<input id="r-fcam-${m.name}" type="number" value="2" min="0"></label>
+function viewCollect() {
+  const ports = S.status?.devices.serial || [], cams = S.status?.devices.cameras || [];
+  $("#work").innerHTML = `
+  <p class="lead">Điều khiển robot bằng tay leader để làm mẫu tác vụ. Mỗi câu lệnh nên có ít nhất 3 demo, với vị trí vật khác nhau.</p>
+  <div class="stack">
+  ${ports.length < 2 ? `<div class="note warn" role="alert">Cần cắm cả robot và tay leader qua USB (đang thấy ${ports.length} thiết bị). Trang tự cập nhật khi cắm.</div>` : ""}
+  <form class="panel" id="f-collect" novalidate>
+    <div class="ph"><div><h2>Tác vụ cần dạy</h2><p>Câu lệnh này cũng là câu sẽ dùng để ra lệnh cho model.</p></div></div>
+    <div class="pb"><div class="fields">
+      <label class="field wide"><span>Câu lệnh</span><input type="text" id="c-task" required placeholder="vd: pick up the red cup and put it in the box"><small>Tiếng Anh, ngắn, nói rõ vật và đích.</small></label>
+      <label class="field"><span>Tên dataset</span><input type="text" id="c-name" required pattern="[A-Za-z0-9_\\-]+" placeholder="vd: cup_to_box"><small>Chữ, số, gạch dưới. Trùng tên thì ghi tiếp.</small></label>
+      <label class="field"><span>Số demo</span><input type="number" id="c-eps" min="1" max="200" value="10"></label>
     </div>
-    <div class="row" style="margin-top:8px"><label style="flex-direction:row; align-items:center; gap:6px"><input type="checkbox" id="r-rec-${m.name}">Ghi lại cho DAgger</label>
-      <label style="flex-direction:row; align-items:center; gap:6px"><input type="checkbox" id="r-dry-${m.name}">Chạy thử không robot</label></div>
-    <div class="row"><button class="small primary" onclick="runModel('${m.name}')">Chạy</button>${m.has_zip ? `<a href="/models/${m.name}.zip"><button class="small">Tải model (.zip)</button></a>` : ""}</div>
-    <h3>DAgger</h3>
-    <div class="row" style="margin-top:0"><select class="small" id="dg-${m.name}">${DS.map(d => `<option>${d.name}</option>`).join("")}</select><button class="small" onclick="dagger('${m.name}')">Thầy gán nhãn + train lại trò</button></div></div>`).join("")
-    || `<p class="empty">Chưa có model. Chọn dataset rồi bấm Distill.</p>`;
-}
-async function runModel(m) {
-  const g = id => document.getElementById(id + "-" + m);
-  const p = {model:m, task:g("r-task").value, robot_port:g("r-port").value, robot_id:g("r-rid").value, wrist_cam:+g("r-wcam").value, seconds:+g("r-sec").value,
-             record:g("r-rec").checked, front_cam:+g("r-fcam").value, dry_run:g("r-dry").checked};
-  if (!p.robot_port && !p.dry_run) { alert("Không thấy cổng serial của robot. Cắm robot hoặc chọn 'Chạy thử không robot'."); return; }
-  try { const st = await post("/api/jobs", {kind:"run", params:p}); openJob = st.id; jobs(); } catch (e) { alert(e.message); }
-}
-async function dagger(m) {
-  const d = DS.find(x => x.name === $("#dg-" + m).value);
-  try { const st = await post("/api/jobs", {kind:"dagger", params:{model:m, dataset:d.root}}); openJob = st.id; jobs(); } catch (e) { alert(e.message); }
+    <details class="adv"><summary>Thiết bị và thời gian</summary><div class="fields">
+      <label class="field"><span>Robot (follower)</span><select id="c-port">${portOptions(ports[0])}</select></label>
+      <label class="field"><span>Tay leader</span><select id="c-lport">${portOptions(ports[1])}</select></label>
+      <label class="field"><span>Camera cổ tay</span><input type="number" id="c-wcam" min="0" value="0"><small>${cams.length ? "Tìm thấy: " + cams.map(esc).join(", ") : "Chưa thấy camera"}</small></label>
+      <label class="field"><span>Camera tổng quan</span><input type="number" id="c-fcam" min="0" value="2"></label>
+      <label class="field"><span>Mỗi demo (giây)</span><input type="number" id="c-eps-s" min="5" value="30"></label>
+      <label class="field"><span>Nghỉ giữa demo (giây)</span><input type="number" id="c-reset" min="0" value="10"></label>
+      <label class="field"><span>ID robot</span><input type="text" id="c-rid" value="so101"><small>Tên file calibration của robot.</small></label>
+      <label class="field"><span>ID tay leader</span><input type="text" id="c-lid" value="leader"></label>
+    </div></details>
+    <div class="actions"><button class="btn primary" type="submit" ${ports.length < 2 ? "disabled" : ""}>Bắt đầu ghi</button><span class="hint">Giữa các demo có thời gian nghỉ để đặt lại vật.</span></div>
+    </div>
+  </form></div>`;
+  $("#f-collect").onsubmit = async e => {
+    e.preventDefault(); const f = e.target; if (!f.reportValidity()) return;
+    const p = {name:$("#c-name").value.trim(), task:$("#c-task").value.trim(), episodes:+$("#c-eps").value, episode_s:+$("#c-eps-s").value, reset_s:+$("#c-reset").value,
+      robot_port:$("#c-port").value, robot_id:$("#c-rid").value, leader_port:$("#c-lport").value, leader_id:$("#c-lid").value, wrist_cam:+$("#c-wcam").value, front_cam:+$("#c-fcam").value};
+    if (p.robot_port === p.leader_port) return toast("Robot và tay leader phải là hai cổng khác nhau.");
+    try { await post("/api/jobs", {kind:"collect", params:p}); toast("Đang ghi demo. Theo dõi ở nút Hoạt động."); refresh(); openDrawer(); } catch (err) { toast(err.message); }
+  };
 }
 
-const KIND = {distill:"Distill", collect:"Thu thập", dagger:"DAgger", teacher:"Train thầy", import:"Tải dataset", run:"Chạy robot"};
-const STAT = {running:"đang chạy", queued:"chờ", done:"xong", failed:"lỗi", stopped:"đã dừng"};
-async function jobs() {
-  const J = await api("/api/jobs");
-  if (!J.length) { $("#jobs").innerHTML = '<p class="empty">Chưa có job.</p>'; return; }
-  const det = openJob ? await api("/api/jobs/" + openJob).catch(() => null) : null;
-  $("#jobs").innerHTML = J.slice(0, 12).map(j => `<div class="job"><div class="t"><span>${KIND[j.kind] || j.kind} · ${j.name}</span><span class="muted">${STAT[j.status] || j.status}</span></div>
-     <div class="stages">${j.stages.map(s => `<i class="${s.status}" title="${s.name}"></i>`).join("")}</div>
-     <div class="muted">${j.stage || ""}${j.status === "running" && j.progress ? " · " + Math.round(j.progress * 100) + "%" : ""}
-       · <a href="#" onclick="openJob='${j.id}';jobs();return false">log</a>${j.status === "running" ? ` · <a href="#" onclick="stopJob('${j.id}');return false">dừng</a>` : ""}</div>
-     ${j.error ? `<div class="err">${j.error.split("\n").slice(-6).join("\n")}</div>` : ""}
-     ${det && det.id === j.id ? `<pre class="log">${(det.log || "").replace(/</g, "&lt;").split("\n").slice(-40).join("\n")}</pre>` : ""}</div>`).join("");
-  const sig = J.filter(j => j.status === "done").map(j => j.id).join();
-  if (sig !== jobs.sig) { jobs.sig = sig; loadModels(); if (J.some(j => j.status === "done" && (j.kind === "import" || j.kind === "collect" || j.kind === "run"))) loadDS(); }
+// ------------------------------------------------------------------ 2 datasets
+async function dsDetail(name) {
+  if (!S.dsDetail[name]) S.dsDetail[name] = await api("/api/datasets/" + encodeURIComponent(name));
+  return S.dsDetail[name];
 }
-async function stopJob(id) { await post(`/api/jobs/${id}/stop`, {}); jobs(); }
+function dsBadge(d) { return d.error ? '<span class="badge bad">Lỗi</span>' : d.ready && d.joint_unit === "degrees" ? '<span class="badge ok">Sẵn sàng</span>' : '<span class="badge warn">Cần kiểm tra</span>'; }
+function viewData() {
+  const L = S.ds;
+  if (!S.sel && L.length) S.sel = L[0].name;
+  $("#work").innerHTML = `
+  <p class="lead">Chọn dataset để dạy model. Cần 2 camera (cổ tay và tổng quan) và góc khớp tính bằng độ.</p>
+  <div class="split">
+    <div class="stack">
+      <div class="panel"><div class="ph"><h2>Dataset</h2><span class="badge" style="margin-left:auto">${L.length}</span></div>
+        <div class="list" role="listbox" aria-label="Dataset">${L.map(d => `
+          <button class="item" role="option" data-n="${esc(d.name)}" aria-selected="${S.sel === d.name}">
+            <b>${esc(d.name)}</b><span class="meta">${d.episodes ?? "?"} demo · ${Object.keys(d.tasks || {}).length} câu lệnh</span>
+            <span class="right">${dsBadge(d)}</span></button>`).join("") || `<div class="empty"><b>Chưa có dataset</b>Ghi demo ở bước 1, hoặc tải dataset công khai bên dưới.</div>`}
+        </div>
+      </div>
+      <form class="panel" id="f-import" novalidate><div class="pb" style="padding-top:16px">
+        <label class="field"><span>Thêm dataset công khai từ Hugging Face</span>
+          <div style="display:flex; gap:8px"><input type="text" id="i-repo" placeholder="owner/name" required pattern="[^/\\s]+/[^/\\s]+"><button class="btn" type="submit">Tải về</button></div>
+          <small>Dataset SO-101 định dạng LeRobot v3 có camera cổ tay và camera tổng quan.</small></label></div></form>
+    </div>
+    <div class="panel" id="ds-detail"><div class="empty"><b>Chọn một dataset</b>để xem câu lệnh và bắt đầu distill.</div></div>
+  </div>`;
+  document.querySelectorAll(".item[data-n]").forEach(b => b.onclick = () => { S.sel = b.dataset.n; viewData(); renderChrome(); });
+  $("#f-import").onsubmit = async e => { e.preventDefault(); if (!e.target.reportValidity()) return; const r = $("#i-repo").value.trim();
+    try { await post("/api/jobs", {kind:"import", params:{repo_ids:[r], name:r.replace("/", "__")}}); toast("Đang tải " + r); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
+  if (S.sel) dsDetail(S.sel).then(d => {
+    const ok = d.ready && d.joint_unit === "degrees";
+    $("#ds-detail").innerHTML = `<div class="ph"><div><h2>${esc(d.name)}</h2><p>${d.episodes} demo · ${(d.frames || 0).toLocaleString("vi")} frame · ${d.fps} fps</p></div><span style="margin-left:auto">${dsBadge(d)}</span></div>
+      <div class="pb">
+        ${ok ? "" : `<div class="note warn" style="margin-bottom:16px">${d.ready ? "" : "Tên camera chưa đúng chuẩn, sẽ được sửa tự động khi distill. "}${d.joint_unit !== "degrees" ? "Không chắc góc khớp tính bằng độ; model có thể sai đơn vị." : ""}</div>`}
+        <ul class="tasks">${Object.entries(d.tasks).map(([t, c]) => `<li><span>${esc(t)}</span><span class="c">${c} demo</span></li>`).join("")}</ul>
+        <div class="actions"><a class="btn primary" href="#distill">Distill dataset này</a><span class="hint">${d.default_test.length} demo được giữ lại để kiểm tra</span></div>
+      </div>`;
+  }).catch(err => $("#ds-detail").innerHTML = `<div class="pb"><div class="note bad">${esc(err.message)}</div></div>`);
+}
 
-tab(); status(); loadDS().then(loadModels); jobs();
-setInterval(() => { status(); jobs(); }, 4000); setInterval(loadDS, 20000);
+// ------------------------------------------------------------------ 3 distill
+function viewDistill() {
+  const d = S.ds.find(x => x.name === S.sel);
+  if (!d) { $("#work").innerHTML = `<div class="panel"><div class="empty"><b>Chưa chọn dataset</b><a href="#data">Chọn dataset ở bước 2</a></div></div>`; return; }
+  const noTeacher = !S.status?.teacher;
+  $("#work").innerHTML = `
+  <p class="lead">Model thầy (2 camera) học tác vụ từ demo, rồi dạy lại cho model trò nhỏ chỉ dùng camera cổ tay để chạy trên Jetson.</p>
+  <div class="stack">
+  ${noTeacher ? `<div class="note bad" role="alert">Chưa có model thầy. <a href="#settings">Cài đặt model thầy</a> trước.</div>` : ""}
+  <form class="panel" id="f-distill" novalidate>
+    <div class="ph"><div><h2>${esc(d.name)}</h2><p>${d.episodes} demo · ${Object.keys(d.tasks || {}).length} câu lệnh</p></div><a class="btn ghost" href="#data" style="margin-left:auto">Đổi dataset</a></div>
+    <div class="pb">
+      <div class="fields"><label class="field wide"><span>Tên model</span><input type="text" id="x-name" required pattern="[A-Za-z0-9_\\-]+" value="${esc(d.name)}"><small>Trùng tên với model cũ sẽ ghi đè.</small></label></div>
+      <div style="margin-top:20px"><span class="field"><span>Các bước sẽ chạy</span></span>
+        <div class="flow"><span>Kiểm tra dataset</span>›<span>Dạy thầy</span>›<span>Đánh giá</span>›<span>Thầy gán nhãn</span>›<span>Train trò</span>›<span>Đóng gói</span></div>
+        <p class="hint" style="margin:10px 0 0">Khoảng 1,5–2 giờ trên RTX 3060. Có thể đóng trang, tác vụ vẫn chạy.</p></div>
+      <details class="adv"><summary>Tuỳ chọn nâng cao</summary><div class="fields">
+        <label class="field"><span>Bước dạy thầy</span><input type="number" id="x-fs" value="2000" min="200" step="100"></label>
+        <label class="field"><span>Bước train trò</span><input type="number" id="x-st" value="12000" min="1000" step="1000"></label>
+        <label class="field"><span>Bản biến đổi ảnh mỗi frame</span><input type="number" id="x-aug" value="2" min="0" max="4"><small>Nhiều hơn thì trò bền hơn với ánh sáng nhưng lâu hơn.</small></label>
+      </div></details>
+      <div class="actions"><button class="btn primary" type="submit" ${noTeacher ? "disabled" : ""}>Bắt đầu distill</button>${S.status?.gpu_busy ? '<span class="hint">GPU đang bận: tác vụ sẽ chờ tới lượt.</span>' : ""}</div>
+    </div>
+  </form></div>`;
+  $("#f-distill").onsubmit = async e => { e.preventDefault(); if (!e.target.reportValidity()) return;
+    try { await post("/api/jobs", {kind:"distill", params:{dataset:d.root, name:$("#x-name").value.trim(), fewshot_steps:+$("#x-fs").value, student_steps:+$("#x-st").value, aug:+$("#x-aug").value}});
+      toast("Đã bắt đầu distill " + $("#x-name").value); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
+}
+
+// ------------------------------------------------------------------ 4 models
+function metricRows(m) {
+  const rows = [["Trò · cổ tay", m.student?.mae10_arm, ""], ["Thầy · 2 camera", m.teacher?.mae10_arm, "t"]];
+  const mx = Math.max(...rows.map(r => r[1] || 0), 0.01) * 1.2;
+  return rows.map(([l, v, c]) => `<div class="metric"><span>${l}</span><span class="track" aria-hidden="true"><i class="${c}" style="width:${v == null ? 0 : 100 * v / mx}%"></i></span><span class="v">${deg(v)}</span></div>`).join("");
+}
+function viewModels() {
+  const M = S.models;
+  if (!S.selModel && M.length) S.selModel = M[0].name;
+  const m = M.find(x => x.name === S.selModel);
+  const dag = S.ds.filter(d => /dagger/.test(d.name));
+  $("#work").innerHTML = `
+  <p class="lead">Sai số là độ lệch trung bình của 5 khớp tay so với demo kiểm tra trong 0,33 giây tới. Càng thấp càng tốt.</p>
+  <div class="split">
+    <div class="panel"><div class="ph"><h2>Model</h2><span class="badge" style="margin-left:auto">${M.length}</span></div>
+      <div class="list" role="listbox" aria-label="Model">${M.map(x => `<button class="item" role="option" data-m="${esc(x.name)}" aria-selected="${x.name === S.selModel}">
+        <b>${esc(x.name)}</b><span class="meta">${esc(x.created)} · ${x.tasks.length} câu lệnh${x.dagger_rounds ? " · đã cải thiện " + x.dagger_rounds + " lần" : ""}</span>
+        <span class="right"><span class="badge ok num">${deg(x.student?.mae10_arm)}</span></span></button>`).join("") || `<div class="empty"><b>Chưa có model</b><a href="#distill">Distill một dataset</a> để tạo model đầu tiên.</div>`}</div></div>
+    <div class="panel">${m ? `
+      <div class="ph"><div><h2>${esc(m.name)}</h2><p>${(m.student?.params_M ?? 13.3).toString().replace(".", ",")} triệu tham số · ${(m.student?.ms_fp16_3060 ?? 0).toFixed(1).replace(".", ",")} ms mỗi lần (RTX 3060)</p></div></div>
+      <div class="pb">
+        ${metricRows(m)}
+        <div class="actions"><button class="btn primary" type="button" id="m-run">Chạy trên robot</button>${m.has_zip ? `<a class="btn" href="/models/${encodeURIComponent(m.name)}.zip" download>Tải model (.zip)</a>` : ""}</div>
+        <details class="adv"><summary>Cải thiện bằng DAgger</summary>
+          <p class="hint">Chạy trên robot với tuỳ chọn "Ghi lại để cải thiện", rồi chọn lần ghi đó. Thầy sửa các hành động trò làm sai và trò được train lại.</p>
+          ${dag.length ? `<div class="fields"><label class="field"><span>Lần ghi từ robot</span><select id="m-dg">${dag.map(d => `<option>${esc(d.name)}</option>`).join("")}</select></label>
+            <div class="field" style="justify-content:flex-end"><button class="btn" type="button" id="m-dagger">Cải thiện model</button></div></div>` : `<div class="note" style="margin-top:12px">Chưa có lần ghi nào từ robot.</div>`}</details>
+        <details class="adv"><summary>Chi tiết</summary><dl class="kv">
+          <dt>Câu lệnh</dt><dd>${m.tasks.map(esc).join("<br>")}</dd><dt>Dataset</dt><dd>${esc((m.dataset || "").split("/").pop())}</dd>
+          <dt>Kẹp (trò / thầy)</dt><dd class="num">${(m.student?.mae10_grip ?? 0).toFixed(2)} / ${(m.teacher?.mae10_grip ?? 0).toFixed(2)} trên thang 0–100</dd>
+          <dt>Cả chuỗi 1,7 giây</dt><dd class="num">${deg(m.student?.mae50_arm)} / ${deg(m.teacher?.mae50_arm)}</dd></dl></details>
+      </div>` : `<div class="empty"><b>Chọn một model</b></div>`}</div>
+  </div>`;
+  document.querySelectorAll(".item[data-m]").forEach(b => b.onclick = () => { S.selModel = b.dataset.m; viewModels(); });
+  if (m) { $("#m-run").onclick = () => runDialog(m);
+    const dg = $("#m-dagger"); if (dg) dg.onclick = async () => { const ds = S.ds.find(d => d.name === $("#m-dg").value);
+      try { await post("/api/jobs", {kind:"dagger", params:{model:m.name, dataset:ds.root}}); toast("Đang cải thiện " + m.name); refresh(); openDrawer(); } catch (err) { toast(err.message); } }; }
+}
+function runDialog(m) {
+  const ports = S.status?.devices.serial || [];
+  $("#dlg-title").textContent = "Chạy " + m.name + " trên robot";
+  $("#dlg-body").innerHTML = `
+    ${ports.length ? "" : `<div class="note warn" style="margin-bottom:16px">Chưa thấy robot. Có thể chạy thử không robot để kiểm tra model.</div>`}
+    <div class="fields">
+      <label class="field wide"><span>Câu lệnh</span><select id="r-task">${m.tasks.map(t => `<option>${esc(t)}</option>`).join("")}</select></label>
+      <label class="field"><span>Robot</span><select id="r-port">${portOptions(ports[0])}</select></label>
+      <label class="field"><span>Thời gian (giây)</span><input type="number" id="r-sec" value="30" min="5" max="600"></label>
+      <label class="field"><span>Camera cổ tay</span><input type="number" id="r-wcam" value="0" min="0"></label>
+      <label class="field"><span>ID robot</span><input type="text" id="r-rid" value="so101"></label>
+      <label class="check wide"><input type="checkbox" id="r-rec">Ghi lại để cải thiện model (cần camera tổng quan)</label>
+      <label class="field" id="r-fcam-w" hidden><span>Camera tổng quan</span><input type="number" id="r-fcam" value="2" min="0"></label>
+      <label class="check wide"><input type="checkbox" id="r-dry" ${ports.length ? "" : "checked"}>Chạy thử không robot (chỉ đo tốc độ)</label>
+    </div>
+    <p class="hint" style="margin:16px 0 0">Robot sẽ chuyển động. Giữ tay khỏi vùng làm việc. Mỗi nhịp điều khiển, khớp đổi không quá 8°.</p>`;
+  $("#dlg-foot").innerHTML = `<button class="btn ghost" value="cancel">Huỷ</button><button class="btn primary" value="ok">Chạy</button>`;
+  $("#r-rec").onchange = e => $("#r-fcam-w").hidden = !e.target.checked;
+  const dlg = $("#dlg"); dlg.returnValue = ""; dlg.showModal();
+  dlg.onclose = async () => { if (dlg.returnValue !== "ok") return;
+    const p = {model:m.name, task:$("#r-task").value, robot_port:$("#r-port").value, robot_id:$("#r-rid").value, wrist_cam:+$("#r-wcam").value, seconds:+$("#r-sec").value,
+               record:$("#r-rec").checked, front_cam:+$("#r-fcam").value, dry_run:$("#r-dry").checked};
+    if (!p.robot_port && !p.dry_run) return toast("Chưa có robot. Chọn chạy thử, hoặc cắm robot.");
+    try { await post("/api/jobs", {kind:"run", params:p}); toast(p.dry_run ? "Đang chạy thử" : "Robot đang chạy"); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
+}
+
+// ------------------------------------------------------------------ settings (teacher)
+function viewSettings() {
+  const s = S.status;
+  $("#work").innerHTML = `
+  <p class="lead">Model thầy là SmolVLA dùng 2 camera, đã học từ dữ liệu SO-101 công khai. Mọi lần distill bắt đầu từ model này.</p>
+  <div class="stack">
+  <div class="panel"><div class="ph"><h2>Model thầy hiện tại</h2><span style="margin-left:auto">${s?.teacher ? '<span class="badge ok">Sẵn sàng</span>' : '<span class="badge bad">Chưa có</span>'}</span></div>
+    <div class="pb"><dl class="kv" style="margin:0"><dt>Checkpoint</dt><dd class="num">${esc(s?.teacher_path)}</dd></dl></div></div>
+  <form class="panel" id="f-teacher" novalidate><div class="ph"><div><h2>Train lại model thầy</h2><p>Tự chọn dataset SO-101 công khai có góc khớp tính bằng độ, tải về, gộp rồi train. Khoảng 6 giờ, chiếm GPU.</p></div></div>
+    <div class="pb"><div class="fields">
+      <label class="field"><span>Tên</span><input type="text" id="t-name" value="smolvla_teacher" pattern="[A-Za-z0-9_\\-]+" required></label>
+      <label class="field"><span>Số dataset tối đa</span><input type="number" id="t-max" value="5" min="1" max="12"></label>
+      <label class="field"><span>Số bước train</span><input type="number" id="t-steps" value="20000" step="1000" min="2000"></label></div>
+      <div class="actions"><button class="btn" type="submit">Train lại</button><span class="hint">Model thầy hiện tại vẫn được dùng tới khi bản mới xong.</span></div></div></form></div>`;
+  $("#f-teacher").onsubmit = async e => { e.preventDefault(); if (!e.target.reportValidity()) return;
+    try { await post("/api/jobs", {kind:"teacher", params:{max_datasets:+$("#t-max").value, steps:+$("#t-steps").value, name:$("#t-name").value.trim()}}); toast("Đã bắt đầu train thầy"); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
+}
+
+// ------------------------------------------------------------------ activity drawer
+let openLog = null;
+function openDrawer() { $("#drawer").hidden = false; $("#act").setAttribute("aria-expanded", "true"); renderDrawer(); }
+function closeDrawer() { $("#drawer").hidden = true; $("#act").setAttribute("aria-expanded", "false"); }
+$("#act").onclick = () => $("#drawer").hidden ? openDrawer() : closeDrawer();
+$("#drawer-x").onclick = closeDrawer;
+addEventListener("keydown", e => { if (e.key === "Escape" && !$("#drawer").hidden && !$("#dlg").open) closeDrawer(); });
+async function renderDrawer() {
+  if ($("#drawer").hidden) return;
+  const J = S.jobs; let log = "";
+  if (openLog) { try { log = (await api("/api/jobs/" + openLog)).log || ""; } catch (e) {} }
+  const keepScroll = $("#drawer-body").scrollTop;
+  $("#drawer-body").innerHTML = J.length ? J.slice(0, 15).map(j => {
+    const live = j.status === "running" || j.status === "queued";
+    const badge = {running:'<span class="badge warn">Đang chạy</span>', queued:'<span class="badge">Đang chờ</span>', done:'<span class="badge ok">Xong</span>', failed:'<span class="badge bad">Lỗi</span>', stopped:'<span class="badge">Đã dừng</span>'}[j.status];
+    return `<div class="job"><div class="row1"><b>${KIND[j.kind] || j.kind}${j.name ? " · " + esc(j.name) : ""}</b>${badge}</div>
+      <div class="hint">${ago(j.started || j.created)}${j.ended && j.started ? " · mất " + dur(j.ended - j.started) : ""}</div>
+      ${live || j.status === "failed" ? `<ol class="timeline">${j.stages.map(s => `<li class="${s.status}"><span class="ic" aria-hidden="true">${s.status === "done" ? "✓" : s.status === "failed" ? "!" : ""}</span>
+        <span>${STAGE[s.name] || s.name}${s.status === "running" && j.progress ? `<div class="prog"><i style="width:${Math.round(j.progress * 100)}%"></i></div>` : ""}</span>
+        <span class="dur">${s.ended && s.started ? dur(s.ended - s.started) : s.status === "running" && s.started ? dur(Date.now() / 1000 - s.started) : ""}</span></li>`).join("")}</ol>` : ""}
+      ${j.status === "failed" ? `<div class="note bad" style="margin-top:10px">${friendly(j.error)}</div>` : ""}
+      <div class="actions">${j.kind === "distill" && j.status === "done" ? `<a class="btn" href="#models" data-goto="${esc(j.name)}">Xem model</a>` : ""}
+        ${live ? `<button class="btn danger" data-stop="${j.id}">Dừng</button>` : ""}${j.status === "failed" || j.status === "stopped" ? `<button class="btn" data-retry="${j.id}">Chạy lại</button>` : ""}
+        <button class="btn ghost" data-log="${j.id}" aria-expanded="${openLog === j.id}">${openLog === j.id ? "Ẩn log" : "Xem log"}</button></div>
+      ${openLog === j.id ? `<pre class="log">${esc(log.split("\n").slice(-60).join("\n")) || "Chưa có log."}</pre>` : ""}</div>`; }).join("")
+    : `<div class="empty"><b>Chưa có hoạt động</b>Ghi demo, distill và chạy robot sẽ hiện ở đây.</div>`;
+  $("#drawer-body").scrollTop = keepScroll;
+  document.querySelectorAll("[data-goto]").forEach(a => a.onclick = () => { S.selModel = a.dataset.goto; closeDrawer(); });
+  document.querySelectorAll("[data-log]").forEach(b => b.onclick = () => { openLog = openLog === b.dataset.log ? null : b.dataset.log; renderDrawer(); });
+  document.querySelectorAll("[data-retry]").forEach(b => b.onclick = async () => { try { await post(`/api/jobs/${b.dataset.retry}/retry`); toast("Đã chạy lại"); refresh(); } catch (e) { toast(e.message); } });
+  document.querySelectorAll("[data-stop]").forEach(b => b.onclick = () => {
+    if (b.dataset.confirm) { post(`/api/jobs/${b.dataset.stop}/stop`).then(() => { toast("Đã dừng"); refresh(); }); return; }
+    b.dataset.confirm = 1; b.textContent = "Bấm lần nữa để dừng"; setTimeout(() => { if (b.isConnected) { delete b.dataset.confirm; b.textContent = "Dừng"; } }, 4000); });
+}
+
+// ------------------------------------------------------------------ chrome + polling
+function renderChrome() {
+  const s = S.status, run = S.jobs.filter(j => j.status === "running" || j.status === "queued");
+  if (s) {
+    const set = (id, cls, txt) => { $("#d-" + id).className = "dot " + cls; $("#t-" + id).textContent = txt; };
+    set("teacher", s.teacher ? "ok" : "bad", s.teacher ? "Model thầy sẵn sàng" : "Chưa có model thầy");
+    set("gpu", s.gpu_busy ? "warn" : "ok", s.gpu_busy ? "GPU đang bận" : "GPU rảnh");
+    const n = s.devices.serial.length; set("robot", n >= 2 ? "ok" : n ? "warn" : "", n >= 2 ? "Robot và leader đã cắm" : n ? "Mới cắm 1 thiết bị" : "Chưa cắm robot");
+  }
+  $("#sub-data").textContent = S.ds.length ? (S.sel || S.ds.length + " dataset") : "Chưa có";
+  $("#sub-models").textContent = S.models.length ? S.models.length + " model" : "Chưa có";
+  const done = {collect:S.ds.length > 0, data:!!S.sel, distill:S.models.length > 0, models:S.jobs.some(j => j.kind === "run" && j.status === "done")};
+  document.querySelectorAll(".steps a").forEach(a => a.querySelector(".n").classList.toggle("done", !!done[a.dataset.step] && !a.hasAttribute("aria-current")));
+  const a = $("#act"), bar = a.querySelector(".bar");
+  if (run.length) { const j = run[0]; a.classList.add("live"); bar.hidden = false; bar.querySelector("i").style.width = Math.round((j.progress || 0) * 100) + "%";
+    $("#act-t").textContent = `${KIND[j.kind]} · ${STAGE[j.stage] || "đang chờ"}${run.length > 1 ? ` (+${run.length - 1})` : ""}`; }
+  else { a.classList.remove("live"); bar.hidden = true; const f = S.jobs.find(j => j.status === "failed" && Date.now() / 1000 - (j.ended || 0) < 3600);
+    $("#act-t").textContent = f ? "1 tác vụ gặp lỗi" : "Hoạt động"; }
+}
+async function refresh(full) {
+  try {
+    const [st, jobs] = await Promise.all([api("/api/status"), api("/api/jobs")]);
+    const doneSig = jobs.filter(j => j.status === "done").map(j => j.id).join() + "|" + st.devices.serial.join();
+    S.status = st; S.jobs = jobs;
+    if (full || doneSig !== refresh.sig) {
+      const first = refresh.sig === undefined; refresh.sig = doneSig;
+      [S.ds, S.models] = await Promise.all([api("/api/datasets"), api("/api/models")]); S.dsDetail = {};
+      if (S.sel && !S.ds.some(d => d.name === S.sel)) S.sel = null;
+      if (!first && !document.activeElement?.closest("form")) route();
+    }
+    renderChrome(); renderDrawer();
+  } catch (e) { $("#act-t").textContent = "Mất kết nối máy chủ"; }
+}
+refresh(true).then(route);
+setInterval(refresh, 4000);
 </script>
 </body>
 </html>

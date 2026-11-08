@@ -1,0 +1,5 @@
+11-07 19:02 train mod3
+11-07 19:13 trained: {"step": 4000, "val": {"grounder_obj_cm": 1.997, "grounder_dest_cm": 5.335, "state_acc": 0.89, "state_acc_change": 0.797, "grasp_yaw_deg": 6.15, "planner_target_cm": 1.794, "planner_jaw_acc": 1.0, "planner_shift5_cm": 1.975, "composed_target_cm": 4.108}}
+RESULT {"tasks": "pick", "episodes": 24, "success_rate": 0.08333333333333333, "by": {"pick": [2, 24], "green_block": [0, 1], "marker": [0, 3], "tuna_can": [0, 2], "green_hex": [0, 2], "rubiks_cube": [0, 1], "scissors": [0, 2], "bottle": [0, 2], "gelatin_box": [0, 2], "blue_peg": [0, 2], "eraser": [1
+11-07 19:27 pick_oracle_grounder: RESULT {"tasks": "pick", "episodes": 24, "success_rate": 0.08333333333333333, "by": {"pick": [2, 24], "green_block": [0, 1], "marker": [0, 3], "tuna_can": [0, 2], "green_hex": [0, 2], "rubiks_cube": [
+RESULT {"tasks": "pick", "episodes": 24, "success_rate": 0.0, "by": {"pick": [0, 24], "green_block": [0, 1], "marker": [0, 3], "tuna_can": [0, 2], "green_hex": [0, 2], "rubiks_cube": [0, 1], "scissors": [0, 2], "bottle": [0, 2], "gelatin_box": [0, 2], "blue_peg": [0, 2], "eraser": [0, 2], "yellow_bl

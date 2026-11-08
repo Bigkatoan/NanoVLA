@@ -5,7 +5,8 @@ cams='wrist': only env.scene["wrist"] is read (the scene may have no front camer
 """
 import numpy as np
 
-RES = (120, 160)          # = tabletop.RES (policy input resolution); duplicated so this module needs no Isaac import
+import os
+RES = tuple(int(x) for x in os.environ.get("TABLETOP_RES", "120x160").split("x"))   # policy / recorded resolution (H x W), e.g. 240x320
 CAM_MODES = ("both", "wrist")
 
 
@@ -25,9 +26,11 @@ def get_images(env, cams):
     return {"front": f, "wrist": w}
 
 
-def build_request(S, need, imgs, texts, cams):
-    """policy-server request for the envs in `need` (indices); imgs from get_images"""
-    req = dict(state=np.asarray(S)[need], wrist=[imgs["wrist"][i] for i in need], text=[texts[i] for i in need])
+def build_request(S, need, imgs, texts, cams, fresh=None):
+    """policy-server request for the envs in `need` (indices); imgs from get_images.
+    ids / new let a recurrent server (vla/vlar_server.py) keep per-env memory; stateless servers ignore them."""
+    req = dict(state=np.asarray(S)[need], wrist=[imgs["wrist"][i] for i in need], text=[texts[i] for i in need],
+               ids=[int(i) for i in need], new=[bool(fresh[i]) if fresh is not None else False for i in need])
     if cams != "wrist":
         req["front"] = [imgs["front"][i] for i in need]
     return req

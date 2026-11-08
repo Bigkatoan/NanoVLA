@@ -125,6 +125,7 @@ class TrajRunner:
         self.p_hold = np.zeros((self.n, 3)); self.p0 = np.zeros((self.n, 3)); self.p1 = np.zeros((self.n, 3))
         self.g = self.env.state()[:, 5].copy(); self.g0 = self.g.copy()
         self.done = np.zeros(self.n, bool); self.err = np.ones(self.n); self.retries = np.zeros(self.n, int)
+        self.frozen = np.zeros(self.n, bool)        # DAgger: the policy drives this env, the expert's node machine waits
         self.kin.q_cmd = self.env.robot.data.joint_pos.clone()
         for i in range(self.n):
             self.reset_env(i)
@@ -139,7 +140,36 @@ class TrajRunner:
         self.p_hold[i] = self.p0[i] = self.p1[i] = p[i]
         self.g[i] = self.g0[i] = self.env.state()[i, 5]
         self.done[i], self.err[i], self.retries[i] = False, 1.0, 0
+        self.frozen[i] = False
         self.kin.q_cmd[i] = self.env.robot.data.joint_pos[i]
+
+    def freeze(self, i):
+        """DAgger: hand env i to the policy; the node machine keeps its step and does not advance"""
+        self.frozen[i] = True
+
+    def resume(self, i):
+        """DAgger: the expert takes over again from wherever the policy left the robot: the current step's move is
+        restarted from the ACTUAL grasp-centre pose (recovery motion), IK integrates from the actual joints"""
+        p, _ = self.kin.tcp_pose(); p = p.cpu().numpy()[i]
+        self.frozen[i] = False
+        # the policy may have dropped the object: if we are past the grasp check and it is not lifted, go back to the approach
+        steps = self.spec["trajectory"]
+        r = next((j for j, st in enumerate(steps) if st.get("retry")), None)
+        if r is not None and self.k[i] > r and not self.done[i]:
+            rt = steps[r]["retry"]; name = self.sub(i, rt["if_not_lifted"])
+            if self.env.pos(name)[i][2] + tt.OBJ_META[name]["zmin"] < rt.get("min_lift", 0.03) * 0.5:
+                self.k[i] = rt["goto"]; self.phase[i], self.s[i] = "grip", 0; self.p_hold[i] = p
+                self.kin.q_cmd[i] = self.env.robot.data.joint_pos[i]; self.g[i] = float(self.env.state()[i, 5])
+                return
+        self.kin.q_cmd[i] = self.env.robot.data.joint_pos[i]
+        self.g[i] = float(self.env.state()[i, 5])
+        if self.done[i]:
+            self.p_hold[i] = p; return
+        if self.phase[i] in ("move", "settle"):
+            self.p0[i] = p; self.s[i] = 0; self.phase[i] = "move"
+            self.T[i] = max(8, int(np.linalg.norm(self.p1[i] - p) / self.speed * tt.CTRL_HZ))
+        else:                                       # grip phase: re-do the gripper action where the robot is now
+            self.p_hold[i] = p; self.s[i] = 0
 
     def _next_step(self, i, st):
         """advance after a step; optional {"retry": {"if_not_lifted": obj, "goto": k, "max": 2}} jumps back on a failed grasp"""
@@ -161,6 +191,9 @@ class TrajRunner:
         dq, err = self.kin.ik_step(torch.tensor(pos_des, device=dev, dtype=torch.float32), torch.tensor(quat_des, device=dev, dtype=torch.float32), gain=1.0)
         self.err = err.cpu().numpy()
         self.kin.q_cmd[:, :5] += dq
+        if self.frozen.any():                       # frozen envs: keep the IK command glued to the actual joints
+            fz = torch.tensor(self.frozen, device=dev)
+            self.kin.q_cmd[fz] = self.env.robot.data.joint_pos[fz]
         self.kin.q_cmd[:, 5] = torch.tensor(grip, device=dev, dtype=torch.float32)
         lim = self.env.robot.data.soft_joint_pos_limits
         self.kin.q_cmd = torch.clamp(self.kin.q_cmd, lim[..., 0], lim[..., 1])
@@ -173,7 +206,7 @@ class TrajRunner:
         steps = self.spec["trajectory"]
         pos_des = self.p_hold.copy(); quat_des = np.zeros((self.n, 4)); grip = self.g.copy()
         for i in range(self.n):
-            if self.done[i]:
+            if self.done[i] or self.frozen[i]:
                 quat_des[i] = quat_from_axes(np.array([math.cos(self.yaw[i]), math.sin(self.yaw[i]), 0]), np.array([0, 0, 1.0])); continue
             st = steps[self.k[i]]
             gt = OPEN if st["gripper"] == "open" else CLOSE
@@ -187,6 +220,9 @@ class TrajRunner:
                     p1, yaw = self.resolve(i, st["node"], self.yaw[i])
                     self.p0[i] = self.p_hold[i]; self.p1[i] = p1; self.yaw[i] = yaw
                     self.T[i] = max(8, int(np.linalg.norm(p1 - self.p0[i]) / self.speed * tt.CTRL_HZ))
+                    nd = self.spec["nodes"][str(st["node"])]
+                    if getattr(self, "slow_near", 1.0) > 1 and nd.get("obj") == "$obj" and np.linalg.norm(nd.get("offset", [0, 0, 0])) < 0.06:
+                        self.T[i] = int(self.T[i] * self.slow_near)      # final approach to the object: slower, more frames to learn alignment
             elif self.phase[i] == "move":
                 self.s[i] += 1; u = min(1.0, self.s[i] / self.T[i]); u = 3 * u * u - 2 * u ** 3
                 pos_des[i] = self.p0[i] + (self.p1[i] - self.p0[i]) * u

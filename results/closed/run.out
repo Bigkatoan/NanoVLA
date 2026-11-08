@@ -1,0 +1,7 @@
+14:25 train closed_v1
+15:50 trained: {"step": 20000, "val_l1": 0.1444, "val_hold": 0.4551, "val_rel": 0.3173, "val_fwd_state": 0.0017, "val_fwd_img": 0.0006, "n_val_ticks": 4768}
+RESULT {"wrong_object_rate": 0.0, "tasks": "pick,pad,tray,container,push,topple,rotate,rel", "cams": "wrist", "dry_run": false, "episodes": 48, "success_rate": 0.041666666666666664, "by": {"tray": [0, 8], "green_block": [0, 3], "pick": [1, 8], "banana": [0, 1], "rel": [0, 4], "red_block": [0, 2], "t
+16:15 A: RESULT {"wrong_object_rate": 0.0, "tasks": "pick,pad,tray,container,push,topple,rotate,rel", "cams": "wrist", "dry_run": false, "episodes": 48, "success_rate": 0.041666666666666664, "by": {"tray": [0, 8], "green_block": 
+RESULT {"wrong_object_rate": 0.0, "tasks": "pick", "cams": "wrist", "dry_run": false, "episodes": 24, "success_rate": 0.041666666666666664, "by": {"pick": [1, 24], "spool": [1, 9], "toy_brick": [0, 8], "glue_stick": [0, 7]}, "exec": 1, "seed": 30000, "wall_s": 687}
+16:27 C: RESULT {"wrong_object_rate": 0.0, "tasks": "pick", "cams": "wrist", "dry_run": false, "episodes": 24, "success_rate": 0.041666666666666664, "by": {"pick": [1, 24], "spool": [1, 9], "toy_brick": [0, 8], "glue_stick": [0, 
+16:27 ALL DONE

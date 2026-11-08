@@ -1,0 +1,22 @@
+{
+ "real": {
+  "arm": 0.319,
+  "gripper": 0.299
+ },
+ "other_images": {
+  "arm": 0.387,
+  "gripper": 0.367
+ },
+ "zero_image": {
+  "arm": 0.333,
+  "gripper": 0.329
+ },
+ "frozen_joints": {
+  "arm": 1.491,
+  "gripper": 6.327
+ },
+ "other_text": {
+  "arm": 0.494,
+  "gripper": 0.476
+ }
+}

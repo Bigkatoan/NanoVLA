@@ -1,0 +1,20 @@
+{
+ "full": 0.318,
+ "no_error": 0.3318,
+ "no_plan_carry": 0.6897,
+ "no_memory": 0.6951,
+ "forward_state_err": 0.0281,
+ "naive_const_err": 0.0752,
+ "amp_ratio_first_step": 0.934,
+ "delta_vs_carried": 0.103,
+ "mean_abs_e": 0.0281,
+ "grip_close_events": 68,
+ "grip_close_missed": 0,
+ "grip_close_lag_ticks_median": 0.0,
+ "pool_query_cos": 0.665,
+ "pool_attn_entropy": 3.638,
+ "uniform_entropy": 4.382,
+ "pool_attnmap_cos": 0.58,
+ "train_act_last": 0.0878,
+ "val_l1_last": 0.1444
+}

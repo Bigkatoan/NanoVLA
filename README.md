@@ -5,7 +5,51 @@ small text encoder are pretrained separately, their embedding spaces are aligned
 (front image, wrist image, instruction, joint state) to 1.6 s action chunks. The goal is a few-shot pipeline: adapt to
 a new task from tens of demonstrations, measured by closed-loop **success rate**. Target hardware: Jetson Orin Nano.
 
-## Components
+## Current pipeline: SmolVLA teacher -> few-shot -> distilled wrist-camera student
+
+```
+public SO-101 data (degrees) ──> SmolVLA teacher (2 cameras: wrist + overview, ~450M, PC)
+your demos (5-20 per task)  ──> few-shot teacher (2,000 steps, action expert only)
+teacher labels (demo frames + augmented copies [+ DAgger frames]) ──> student (wrist only, ResNet18, 13M) ──> ONNX ──> Jetson
+```
+
+| Step | Command | Notes |
+|---|---|---|
+| 1. pick public data | `python3 tools/hf_select.py --out data/hf/selected.json` | v3.0, 30 fps, one wrist + one 480x640 overview camera, joints in **degrees** (actuator angle), per-joint means within 25 deg of the consensus (same calibration convention) |
+| 2. download + merge | `snapshot_download(...)`, then `tools/hf_unify.py --out data/lerobot/<name> <roots>` | renames cameras to `camera1` (wrist) / `camera2` (overview), fixes stale episode-metadata indices; values are not rescaled |
+| 3. teacher | `lerobot-train --policy.path=ckpt/smolvla_base --dataset.root=data/lerobot/so101_deg_v1 --batch_size=32 --steps=20000` | 6 h on an RTX 3060; `tools/log2tb.py` mirrors the log to TensorBoard |
+| 4. your task | record with `lerobot-record` (SO101Follower, `use_degrees=True`, wrist + overview camera, 30 fps), then `scripts/fewshot_distill.sh <name> <dataset> "[train eps]" <test eps>` | few-shot teacher -> offline eval -> teacher labels -> student -> ONNX + `.meta.json` |
+| 5. robot | `python deploy/run_student.py --onnx ckpt/student/<name>.onnx --meta ckpt/student/<name>.meta.json --task "..." --port /dev/ttyACM0` | 30 Hz control, new chunk every 8 ticks with cross-fade, per-tick joint-step limit; ONNX Runtime picks TensorRT fp16 on the Jetson |
+| 6. DAgger | `run_student.py ... --front_cam <idx> --record data/lerobot/<name>_dagger<k>`, then `scripts/dagger_round.sh <name> <k>` | the teacher labels the frames the student visited; the student retrains on all labels |
+
+Results (offline, proxy task `fport/tic-tac-toe-so101` that the teacher never saw: 9 instructions, 10 test episodes;
+mean absolute error of the 5 arm joints in degrees, first 10 actions = 0.33 s / full 50-action chunk;
+`results/day1/`):
+
+| Model | Cameras | MAE 10 | MAE 50 | Gripper (0-100) | Latency (RTX 3060) |
+|---|---|---|---|---|---|
+| teacher, zero-shot | 2 | 4.18 | 12.24 | 1.71 | 42 ms |
+| teacher + 9 demos (1 per instruction) | 2 | 2.39 | 6.01 | 1.08 | 42 ms |
+| teacher + 18 demos | 2 | 1.93 | 4.62 | 0.92 | 42 ms |
+| teacher + 35 demos | 2 | **1.83** | 4.28 | 0.93 | 42 ms |
+| `smolvla_base` + 35 demos (no teacher pretraining) | 2 | 2.00 | 4.44 | 0.97 | 42 ms |
+| student, demos only | wrist | 2.22 | 4.41 | 0.99 | 1.0 ms |
+| student, teacher labels | wrist | **2.09** | **4.22** | 0.92 | 1.0 ms |
+| student, teacher + demos | wrist | 2.10 | 4.25 | 0.89 | 1.0 ms |
+
+These are offline action errors, not success rates; closed-loop tests (Isaac tabletop, real robot) come next.
+Teacher data: `geonmin-kim/SO101-lv4-3color-cube-mat-to-mat…`, `nikodembartnik/so101_pencil_holder_merged`,
+`nikodembartnik/so101_pencil_holder_2`, `dpak0724/so101_toh_79ep_2cam`, `aivanni/so101-puzzle-v4` (1,035 episodes, 661k frames).
+
+Environments: `envs/lerobot` (python 3.10, `lerobot[smolvla]==0.4.4`, the last release for python < 3.12) for the
+teacher, labels and student; `envs/deploy` (onnxruntime-gpu, opencv) for `deploy/`.
+
+Simulation research line (Isaac Lab tabletop, `isaac_bench/`, `vla/nanovla_*.py`): modular state-based NanoVLA
+(grounder / state / grasp / planner + learned IK `tools/nano_ik.py`), event labels, closed-loop evals with
+module-oracle ablations (`results/s*/`); `isaac_bench/sim_web.py` serves the simulated arm in a browser
+(Cartesian jog, joint sliders, analytic or learned IK).
+
+## Earlier from-scratch model
 
 | Stage | Model | Params | Training data |
 |---|---|---|---|
@@ -138,6 +182,12 @@ NanoVLA (~/VLA)
 │   ├── sim_assets/         TheRobotStudio SO-101 MJCF/URDF
 │   └── sim_pkgs/           MuJoCo build for python 3.10
 ├── envs/isaac_env/         Python 3.11 venv with Isaac Sim 5.1 + Isaac Lab
+├── scripts/                fewshot_distill.sh (your task end to end), dagger_round.sh
+├── deploy/                 run_student.py: student on the real SO-101 / Jetson (ONNX Runtime, TensorRT fp16)
+├── tools/                  hf_select.py, hf_unify.py, to_lerobot.py, smol_offline.py (teacher eval + labels), log2tb.py,
+│                           nano_ik.py, eval_*.sh, export_bench.py, dashboards
+├── vla/student.py          wrist-camera student (distillation target), vla/smolvla_server.py (teacher in the Isaac eval)
+├── viz/                    Manim sources of the architecture / pipeline videos
 ├── results/                small result summaries that are versioned (JSON)
 └── logs/install/           Isaac Sim / Isaac Lab install logs (not versioned)
 ```

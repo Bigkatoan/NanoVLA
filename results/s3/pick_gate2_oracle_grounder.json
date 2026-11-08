@@ -1,0 +1,464 @@
+{
+ "tasks": "pick",
+ "episodes": 24,
+ "success_rate": 0.08333333333333333,
+ "by": {
+  "pick": [
+   2,
+   24
+  ],
+  "green_block": [
+   0,
+   1
+  ],
+  "marker": [
+   1,
+   2
+  ],
+  "tuna_can": [
+   0,
+   1
+  ],
+  "green_hex": [
+   0,
+   1
+  ],
+  "rubiks_cube": [
+   0,
+   1
+  ],
+  "scissors": [
+   0,
+   2
+  ],
+  "bottle": [
+   0,
+   1
+  ],
+  "gelatin_box": [
+   0,
+   2
+  ],
+  "blue_peg": [
+   0,
+   3
+  ],
+  "eraser": [
+   0,
+   1
+  ],
+  "yellow_block": [
+   0,
+   1
+  ],
+  "coffee_can": [
+   0,
+   2
+  ],
+  "multicolor_cube": [
+   0,
+   1
+  ],
+  "meat_can": [
+   1,
+   1
+  ],
+  "red_peg": [
+   0,
+   1
+  ],
+  "orange_bar": [
+   0,
+   1
+  ],
+  "blue_block": [
+   0,
+   1
+  ],
+  "yellow_triangle": [
+   0,
+   1
+  ]
+ },
+ "query_every": 3,
+ "jitter": 0,
+ "seed": 30000,
+ "results": [
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "green_block",
+   "text": "pick up the green block",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2,
+    1
+   ],
+   "dmin_cm": 3.0,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "marker",
+   "text": "pick up the marker",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2,
+    1,
+    2
+   ],
+   "dmin_cm": 2.5,
+   "close_t": 7.27,
+   "close_d_cm": 2.6,
+   "lift_cm": 0.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "tuna_can",
+   "text": "pick up the small tuna can",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.3,
+   "close_t": 15.23,
+   "close_d_cm": 2.5,
+   "lift_cm": 0.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "green_hex",
+   "text": "pick up the hexagon block",
+   "t": 30.0,
+   "state_seq": [
+    0
+   ],
+   "dmin_cm": 7.2,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "rubiks_cube",
+   "text": "pick up the rubik's cube",
+   "t": 30.0,
+   "state_seq": [
+    0
+   ],
+   "dmin_cm": 8.4,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "scissors",
+   "text": "pick up the scissors",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.4,
+   "close_t": 2.27,
+   "close_d_cm": 1.5,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "bottle",
+   "text": "pick up the bottle",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.5,
+   "close_t": 2.23,
+   "close_d_cm": 1.9,
+   "lift_cm": 0.3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "gelatin_box",
+   "text": "pick up the gelatin box",
+   "t": 30.0,
+   "state_seq": [
+    0
+   ],
+   "dmin_cm": 2.5,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "blue_peg",
+   "text": "pick up the blue cylinder",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.7,
+   "close_t": 2.63,
+   "close_d_cm": 4.4,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "blue_peg",
+   "text": "pick up the blue cylinder",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 2.2,
+   "close_t": 1.73,
+   "close_d_cm": 4.4,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "gelatin_box",
+   "text": "pick up the gelatin box",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.3,
+   "close_t": 1.97,
+   "close_d_cm": 3.8,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "eraser",
+   "text": "pick up the eraser",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 2.5,
+   "close_t": 3.17,
+   "close_d_cm": 2.6,
+   "lift_cm": 0.2
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "marker",
+   "text": "pick up the marker",
+   "t": 3.37,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 2.3,
+   "close_t": 2.37,
+   "close_d_cm": 2.4,
+   "lift_cm": 4.8
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "scissors",
+   "text": "pick up the scissors",
+   "t": 30.0,
+   "state_seq": [
+    0
+   ],
+   "dmin_cm": 4.3,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "yellow_block",
+   "text": "pick up the yellow block",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 2.1,
+   "close_t": 3.07,
+   "close_d_cm": 2.9,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "coffee_can",
+   "text": "pick up the small coffee can",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 2.5,
+   "close_t": 2.57,
+   "close_d_cm": 4.1,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "multicolor_cube",
+   "text": "pick up the multicolored cube",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.9,
+   "close_t": 2.3,
+   "close_d_cm": 4.1,
+   "lift_cm": 0.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "meat_can",
+   "text": "pick up the meat can",
+   "t": 14.1,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.9,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 5.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "coffee_can",
+   "text": "pick up the small coffee can",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.8,
+   "close_t": 1.93,
+   "close_d_cm": 2.2,
+   "lift_cm": 0.3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "red_peg",
+   "text": "pick up the red cylinder",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1
+   ],
+   "dmin_cm": 1.0,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "orange_bar",
+   "text": "pick up the bar",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1
+   ],
+   "dmin_cm": 3.7,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "blue_peg",
+   "text": "pick up the blue cylinder",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.2,
+   "close_t": 7.23,
+   "close_d_cm": 3.1,
+   "lift_cm": 0.3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "blue_block",
+   "text": "pick up the blue block",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 2.0,
+   "close_t": 1.87,
+   "close_d_cm": 3.5,
+   "lift_cm": 0.4
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "yellow_triangle",
+   "text": "pick up the triangle block",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1
+   ],
+   "dmin_cm": 2.3,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 0.2
+  }
+ ]
+}

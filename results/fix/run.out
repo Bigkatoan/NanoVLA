@@ -1,0 +1,4 @@
+14:03 C M-L1: RESULT {"wrong_object_rate": 0.041666666666666664, "tasks": "pick", "cams": "wrist", "dry_run": false, "episodes": 24, "success_rate": 0.0, "by": {"pick": [0, 2
+14:03 dagger smoke test
+14:12 smoke: 6 episodes, 
+14:12 train M+SS (scheduled sampling, 8k steps)

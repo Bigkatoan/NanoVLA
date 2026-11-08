@@ -1,0 +1,5 @@
+RESULT {"tasks": "pick", "episodes": 24, "success_rate": 0.08333333333333333, "by": {"pick": [2, 24], "green_block": [0, 1], "marker": [1, 2], "tuna_can": [0, 1], "green_hex": [0, 1], "rubiks_cube": [0, 1], "scissors": [0, 2], "bottle": [0, 1], "gelatin_box": [0, 2], "blue_peg": [0, 3], "eraser": [0
+11-07 20:19 pick_gate2_oracle_grounder: RESULT {"tasks": "pick", "episodes": 24, "success_rate": 0.08333333333333333, "by": {"pick": [2, 24], "green_block": [0, 1], "marker": [1, 2], "tuna_can": [0, 1], "green_hex": [0, 1], "rubiks_cube": [
+RESULT {"tasks": "pick", "episodes": 24, "success_rate": 0.0, "by": {"pick": [0, 24], "green_block": [0, 1], "marker": [0, 3], "tuna_can": [0, 2], "green_hex": [0, 2], "rubiks_cube": [0, 1], "scissors": [0, 2], "bottle": [0, 2], "gelatin_box": [0, 2], "blue_peg": [0, 2], "eraser": [0, 2], "yellow_bl
+11-07 20:30 pick_gate2: RESULT {"tasks": "pick", "episodes": 24, "success_rate": 0.0, "by": {"pick": [0, 24], "green_block": [0, 1], "marker": [0, 3], "tuna_can": [0, 2], "green_hex": [0, 2], "rubiks_cube": [0, 1], "scissors
+11-07 20:30 GATE2 DONE

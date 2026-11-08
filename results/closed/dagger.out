@@ -1,0 +1,5 @@
+16:57 DAgger smoke test (2 envs, 2 episodes)
+16:59 smoke ok: 2 kept of 3 [0.228, 0.385]
+16:59 DAgger r1 gen place
+17:22   place: 60 kept of 86
+17:22 DAgger r1 gen pick

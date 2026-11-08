@@ -1,0 +1,4 @@
+17:42 E1 base: RESULT {"wrong_object_rate": 0.0, "tasks": "pick", "cams": "wrist", "dry_run": false, "episodes": 24, "success_rate": 0.041666666666666664, "by": {"pi
+17:52 E2 warmup: RESULT {"wrong_object_rate": 0.0, "tasks": "pick", "cams": "wrist", "dry_run": false, "episodes": 24, "success_rate": 0.041666666666666664, "by": {"pi
+18:03 E3 jpeg: RESULT {"wrong_object_rate": 0.041666666666666664, "tasks": "pick", "cams": "wrist", "dry_run": false, "episodes": 24, "success_rate": 0.125, "by": {"
+18:03 DONE

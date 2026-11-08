@@ -1,0 +1,116 @@
+{
+ "cnt": {
+  "pick": 400,
+  "pad": 115,
+  "container": 108,
+  "tray": 113,
+  "rel": 64,
+  "push": 200,
+  "topple": 120,
+  "rotate": 320,
+  "bowl": 80
+ },
+ "texts": {
+  "pick": "pick up the blue block",
+  "pad": "put the rubik's cube on the white pad",
+  "container": "place the green block into the yellow crate",
+  "tray": "put the blue block in the tray",
+  "rel": "put the small soup can to the right of the meat can",
+  "push": "push the hexagon block left",
+  "topple": "knock over the blue cylinder",
+  "rotate": "rotate the sponge",
+  "bowl": "put the hexagon block in the bowl"
+ },
+ "res": {
+  "A_zeroshot_multitask": {
+   "sr": 0.16666666666666666,
+   "n": 48,
+   "by": {
+    "pick": [
+     4,
+     8
+    ],
+    "tray": [
+     0,
+     7
+    ],
+    "rel": [
+     0,
+     9
+    ],
+    "rotate": [
+     0,
+     5
+    ],
+    "container": [
+     2,
+     7
+    ],
+    "push": [
+     0,
+     7
+    ],
+    "pad": [
+     0,
+     5
+    ]
+   },
+   "wrong": 0.0625
+  },
+  "B_bowl_isaac_N10": {
+   "sr": 0.0,
+   "n": 24,
+   "by": {
+    "bowl": [
+     0,
+     24
+    ]
+   },
+   "wrong": 0.0
+  },
+  "B_bowl_isaac_N50": {
+   "sr": 0.0,
+   "n": 24,
+   "by": {
+    "bowl": [
+     0,
+     24
+    ]
+   },
+   "wrong": 0.041666666666666664
+  },
+  "B_bowl_v1_N50": {
+   "sr": 0.0,
+   "n": 24,
+   "by": {
+    "bowl": [
+     0,
+     24
+    ]
+   },
+   "wrong": 0.0
+  },
+  "C_unseen_zeroshot": {
+   "sr": 0.041666666666666664,
+   "n": 24,
+   "by": {
+    "pick": [
+     1,
+     24
+    ]
+   },
+   "wrong": 0.125
+  },
+  "C_unseen_ft": {
+   "sr": 0.0,
+   "n": 24,
+   "by": {
+    "pick": [
+     0,
+     24
+    ]
+   },
+   "wrong": 0.041666666666666664
+  }
+ }
+}

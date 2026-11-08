@@ -1,0 +1,3 @@
+11-07 20:30 planner sweep
+11-07 20:32 sweep: {"init": "/home/bigkatoan/VLA/ckpt/nanovla_mod/mod3.pt", "target_cm": 1.747, "target_med_cm": 1.194, "shift5_cm": 1.944, "jaw_acc": 1.0, "state0_cm": 2.056, "state1_cm": 1.117, "state2_cm": 1.63, "state3_cm": 2.091, "phase0_cm": 1.95, "phase1_cm": 1.245, "phase2_cm": 1.992, "phase3_cm": 1.397} 
+11-07 20:32 no mod4

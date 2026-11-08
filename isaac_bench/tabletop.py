@@ -22,7 +22,7 @@ TEX_SCALE = float(os.environ.get("TEX_SCALE", 12.0))
 TEX = sorted(glob.glob(os.path.expanduser("~/VLA/isaac_bench/textures/*.png")))
 CTRL_HZ, PHYS_HZ = 30, 120
 BASE_X = -0.05                   # workshop SO101_CFG mounts the base at x=-0.05
-RES = (120, 160)
+RES = tuple(int(x) for x in os.environ.get("TABLETOP_RES", "120x160").split("x"))   # policy / recorded resolution (H x W), e.g. 240x320
 CAM_SCALE = int(os.environ.get("TABLETOP_CAM_SCALE", 2))           # render at RES * scale (2 -> 320x240; 4 -> 640x480 for Cosmos export)
 CAM_EXTRA = bool(int(os.environ.get("TABLETOP_CAM_EXTRA", 0)))
 DR = bool(int(os.environ.get("TABLETOP_DR", 1)))
@@ -179,7 +179,9 @@ class Tabletop:
         from isaaclab.scene import InteractiveScene
         self.torch, self.n, self.dev = torch, num_envs, device
         self.sim = sim_utils.SimulationContext(sim_utils.SimulationCfg(dt=1 / PHYS_HZ, render_interval=PHYS_HZ // CTRL_HZ, device=device,
-                                                                       physics_material=sim_utils.RigidBodyMaterialCfg(static_friction=1.0, dynamic_friction=0.9, restitution=0.0)))
+                                                                       physics_material=sim_utils.RigidBodyMaterialCfg(static_friction=1.0, dynamic_friction=0.9, restitution=0.0),
+                                                                       # 12 envs x 56 objects overflowed the default contact patch buffer (163840) -> CUDA error 700
+                                                                       physx=sim_utils.PhysxCfg(gpu_max_rigid_patch_count=2 ** 20, gpu_max_rigid_contact_count=2 ** 23)))
         self.scene = InteractiveScene(scene_cfg(num_envs))
         self.stage = self.sim.stage
         self.table_mats = make_table_materials(self.stage)

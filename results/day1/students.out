@@ -1,0 +1,4 @@
+11-08 08:54 student gt: {"out": "/home/bigkatoan/VLA/ckpt/student/ttt_gt.pt", "onnx": "/home/bigkatoan/VLA/ckpt/student/ttt_gt.onnx", "params_M": 13.34, "ms_fp16_3060": 1.01, "target": "gt", "mae10_arm": 2.22, "mae50_arm": 4.41, "mae10_grip": 0.99, "teacher_mae10_arm": 1.87, "teacher_mae10_grip": 0.94}
+11-08 09:11 student teacher: {"out": "/home/bigkatoan/VLA/ckpt/student/ttt_teacher.pt", "onnx": "/home/bigkatoan/VLA/ckpt/student/ttt_teacher.onnx", "params_M": 13.34, "ms_fp16_3060": 0.99, "target": "teacher", "mae10_arm": 2.09, "mae50_arm": 4.22, "mae10_grip": 0.92, "teacher_mae10_arm": 1.87, "teacher_mae10_grip": 0.94}
+11-08 09:27 student both: {"out": "/home/bigkatoan/VLA/ckpt/student/ttt_both.pt", "onnx": "/home/bigkatoan/VLA/ckpt/student/ttt_both.onnx", "params_M": 13.34, "ms_fp16_3060": 1.01, "target": "both", "mae10_arm": 2.1, "mae50_arm": 4.25, "mae10_grip": 0.89, "teacher_mae10_arm": 1.87, "teacher_mae10_grip": 0.94}
+11-08 09:27 STUDENTS DONE

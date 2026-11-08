@@ -7,15 +7,19 @@ same category, and falls back to a position word ("on the left") relative to the
 import math
 
 TEMPLATES = {
-    "pick": ["pick up the {o}", "grab the {o}", "lift the {o}", "pick the {o} up"],
-    "pad": ["put the {o} on the {t} pad", "place the {o} on the {t} pad", "move the {o} onto the {t} pad"],
-    "tray": ["put the {o} in the tray", "place the {o} into the tray", "drop the {o} in the tray"],
+    "pick": ["pick up the {o}", "grab the {o}", "lift the {o}", "pick the {o} up", "take the {o}", "hold up the {o}", "raise the {o}", "get the {o}"],
+    "pad": ["put the {o} on the {t} pad", "place the {o} on the {t} pad", "move the {o} onto the {t} pad", "set the {o} on the {t} pad",
+            "drop the {o} on the {t} pad", "bring the {o} to the {t} pad", "leave the {o} on the {t} pad"],
+    "tray": ["put the {o} in the tray", "place the {o} into the tray", "drop the {o} in the tray", "move the {o} into the tray",
+             "set the {o} in the tray", "throw the {o} in the tray", "store the {o} in the tray"],
     "bowl": ["put the {o} in the bowl", "place the {o} into the bowl"],
-    "container": ["put the {o} in the {c}", "place the {o} into the {c}", "drop the {o} into the {c}"],
-    "push": ["push the {o} {d}", "slide the {o} {d}", "nudge the {o} {d}"],
-    "topple": ["knock over the {o}", "tip over the {o}", "push the {o} over"],
-    "rotate": ["rotate the {o} by 90 degrees", "turn the {o} sideways", "rotate the {o}"],
-    "rel": ["put the {o} {r} the {ref}", "place the {o} {r} the {ref}", "move the {o} so it is {r} the {ref}"],
+    "container": ["put the {o} in the {c}", "place the {o} into the {c}", "drop the {o} into the {c}", "move the {o} into the {c}",
+                  "put the {o} inside the {c}", "store the {o} in the {c}", "throw the {o} into the {c}"],
+    "push": ["push the {o} {d}", "slide the {o} {d}", "nudge the {o} {d}", "shove the {o} {d}", "move the {o} {d} without lifting it"],
+    "topple": ["knock over the {o}", "tip over the {o}", "push the {o} over", "make the {o} fall over", "topple the {o}"],
+    "rotate": ["rotate the {o} by 90 degrees", "turn the {o} sideways", "rotate the {o}", "turn the {o} a quarter turn", "spin the {o} 90 degrees"],
+    "rel": ["put the {o} {r} the {ref}", "place the {o} {r} the {ref}", "move the {o} so it is {r} the {ref}", "set the {o} down {r} the {ref}",
+            "drop the {o} {r} the {ref}", "bring the {o} {r} the {ref}"],
 }
 
 

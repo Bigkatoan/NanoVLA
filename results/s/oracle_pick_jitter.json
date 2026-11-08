@@ -1,0 +1,254 @@
+{
+ "tasks": "pick",
+ "episodes": 12,
+ "success_rate": 0.9166666666666666,
+ "by": {
+  "pick": [
+   11,
+   12
+  ],
+  "green_block": [
+   1,
+   1
+  ],
+  "marker": [
+   1,
+   1
+  ],
+  "green_hex": [
+   2,
+   2
+  ],
+  "blue_peg": [
+   1,
+   1
+  ],
+  "gelatin_box": [
+   1,
+   1
+  ],
+  "eraser": [
+   1,
+   1
+  ],
+  "orange_bar": [
+   1,
+   1
+  ],
+  "tuna_can": [
+   2,
+   3
+  ],
+  "glue_stick": [
+   1,
+   1
+  ]
+ },
+ "query_every": 6,
+ "jitter": 3,
+ "seed": 30000,
+ "results": [
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "green_block",
+   "text": "pick up the green block",
+   "t": 6.57,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.0,
+   "close_t": 5.77,
+   "close_d_cm": 0.3,
+   "lift_cm": 4.6
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "marker",
+   "text": "pick up the marker",
+   "t": 6.57,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.1,
+   "close_t": 5.7,
+   "close_d_cm": 0.3,
+   "lift_cm": 4.7
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "green_hex",
+   "text": "pick up the hexagon block",
+   "t": 6.97,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.1,
+   "close_t": 6.0,
+   "close_d_cm": 0.3,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "blue_peg",
+   "text": "pick up the blue cylinder",
+   "t": 6.87,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.0,
+   "close_t": 5.9,
+   "close_d_cm": 0.5,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "gelatin_box",
+   "text": "pick up the gelatin box",
+   "t": 7.03,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.0,
+   "close_t": 6.4,
+   "close_d_cm": 0.1,
+   "lift_cm": 4.7
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "eraser",
+   "text": "pick up the eraser",
+   "t": 7.67,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.0,
+   "close_t": 6.9,
+   "close_d_cm": 0.3,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "orange_bar",
+   "text": "pick up the bar",
+   "t": 6.97,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.0,
+   "close_t": 6.2,
+   "close_d_cm": 0.2,
+   "lift_cm": 4.7
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "tuna_can",
+   "text": "pick up the small tuna can",
+   "t": 7.07,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.1,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 4.7
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "tuna_can",
+   "text": "pick up the small tuna can",
+   "t": 7.37,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.1,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 4.5
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "glue_stick",
+   "text": "pick up the glue stick",
+   "t": 6.97,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.0,
+   "close_t": 6.1,
+   "close_d_cm": 0.1,
+   "lift_cm": 4.8
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "tuna_can",
+   "text": "pick up the small tuna can",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    3
+   ],
+   "dmin_cm": 7.3,
+   "close_t": 8.4,
+   "close_d_cm": 32.1,
+   "lift_cm": 1.3
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "green_hex",
+   "text": "pick up the hexagon block",
+   "t": 12.83,
+   "state_seq": [
+    0,
+    1,
+    2,
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.0,
+   "close_t": 7.63,
+   "close_d_cm": 2.6,
+   "lift_cm": 4.7
+  }
+ ]
+}

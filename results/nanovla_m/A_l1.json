@@ -1,0 +1,563 @@
+{
+ "wrong_object_rate": 0.0,
+ "tasks": "pick,pad,tray,container,push,topple,rotate,rel",
+ "cams": "wrist",
+ "dry_run": false,
+ "episodes": 48,
+ "success_rate": 0.0,
+ "by": {
+  "tray": [
+   0,
+   8
+  ],
+  "green_block": [
+   0,
+   1
+  ],
+  "pick": [
+   0,
+   6
+  ],
+  "banana": [
+   0,
+   2
+  ],
+  "rel": [
+   0,
+   5
+  ],
+  "red_block": [
+   0,
+   1
+  ],
+  "tuna_can": [
+   0,
+   2
+  ],
+  "eraser": [
+   0,
+   5
+  ],
+  "rotate": [
+   0,
+   7
+  ],
+  "sponge": [
+   0,
+   4
+  ],
+  "blue_block": [
+   0,
+   3
+  ],
+  "meat_can": [
+   0,
+   2
+  ],
+  "container": [
+   0,
+   6
+  ],
+  "yellow_triangle": [
+   0,
+   3
+  ],
+  "soup_can": [
+   0,
+   2
+  ],
+  "push": [
+   0,
+   10
+  ],
+  "green_hex": [
+   0,
+   3
+  ],
+  "toy_brick": [
+   0,
+   3
+  ],
+  "pad": [
+   0,
+   6
+  ],
+  "red_peg": [
+   0,
+   6
+  ],
+  "rubiks_cube": [
+   0,
+   1
+  ],
+  "bottle": [
+   0,
+   1
+  ],
+  "purple_cube": [
+   0,
+   2
+  ],
+  "blue_peg": [
+   0,
+   2
+  ],
+  "glue_stick": [
+   0,
+   1
+  ],
+  "foam_brick": [
+   0,
+   1
+  ],
+  "orange_bar": [
+   0,
+   1
+  ],
+  "yellow_block": [
+   0,
+   1
+  ],
+  "gelatin_box": [
+   0,
+   1
+  ]
+ },
+ "exec": 1,
+ "seed": 30000,
+ "wall_s": 1290,
+ "results": [
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "green_block",
+   "text": "put the green block in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "banana",
+   "text": "pick up the banana",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "rel",
+   "obj": "red_block",
+   "text": "put the red block to the left of the triangle block",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "rel",
+   "obj": "tuna_can",
+   "text": "put the small tuna can behind the letter cube",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "eraser",
+   "text": "put the eraser in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "rotate",
+   "obj": "sponge",
+   "text": "rotate the sponge",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "blue_block",
+   "text": "put the blue block in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "rotate",
+   "obj": "meat_can",
+   "text": "rotate the meat can",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "container",
+   "obj": "yellow_triangle",
+   "text": "drop the triangle block into the box",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "rel",
+   "obj": "soup_can",
+   "text": "put the small soup can to the right of the green block",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "container",
+   "obj": "yellow_triangle",
+   "text": "drop the triangle block into the plate",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "tuna_can",
+   "text": "push the small tuna can toward you",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "container",
+   "obj": "green_hex",
+   "text": "put the hexagon block in the plate",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "toy_brick",
+   "text": "put the toy brick in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "eraser",
+   "text": "put the eraser on the white pad",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "sponge",
+   "text": "push the sponge right",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "red_peg",
+   "text": "push the red cylinder away from you",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "container",
+   "obj": "toy_brick",
+   "text": "put the toy brick in the box",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "container",
+   "obj": "rubiks_cube",
+   "text": "place the rubik's cube into the bucket",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "yellow_triangle",
+   "text": "pick up the triangle block",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "sponge",
+   "text": "push the sponge toward you",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "red_peg",
+   "text": "put the red cylinder on the white pad",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "bottle",
+   "text": "push the bottle toward you",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "purple_cube",
+   "text": "push the cube right",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "purple_cube",
+   "text": "put the cube in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "soup_can",
+   "text": "put the small soup can on the cyan pad",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "red_peg",
+   "text": "push the red cylinder away from you",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "meat_can",
+   "text": "put the meat can in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "blue_peg",
+   "text": "pick up the blue cylinder",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "glue_stick",
+   "text": "put the glue stick in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "blue_block",
+   "text": "pick up the blue block",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "green_hex",
+   "text": "push the hexagon block away from you",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "rotate",
+   "obj": "foam_brick",
+   "text": "rotate the foam brick by 90 degrees",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "red_peg",
+   "text": "put the red cylinder on the pink pad",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "rel",
+   "obj": "green_hex",
+   "text": "put the hexagon block behind the sponge",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "container",
+   "obj": "blue_block",
+   "text": "drop the blue block into the yellow crate",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "eraser",
+   "text": "put the eraser on the pink pad",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "eraser",
+   "text": "push the eraser away from you",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "toy_brick",
+   "text": "pick up the toy brick",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "rotate",
+   "obj": "orange_bar",
+   "text": "turn the bar sideways",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "rotate",
+   "obj": "sponge",
+   "text": "rotate the sponge by 90 degrees",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "tray",
+   "obj": "yellow_block",
+   "text": "put the yellow block in the tray",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "blue_peg",
+   "text": "pick up the blue cylinder",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "rotate",
+   "obj": "eraser",
+   "text": "rotate the eraser",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 3
+  },
+  {
+   "success": false,
+   "task": "pad",
+   "obj": "red_peg",
+   "text": "put the red cylinder on the white pad",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "push",
+   "obj": "red_peg",
+   "text": "push the red cylinder left",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "rel",
+   "obj": "banana",
+   "text": "put the banana to the left of the eraser",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 2
+  },
+  {
+   "success": false,
+   "task": "rotate",
+   "obj": "gelatin_box",
+   "text": "turn the gelatin box sideways",
+   "t": 25.0,
+   "wrong_obj": [],
+   "n_present": 4
+  }
+ ]
+}

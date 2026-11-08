@@ -27,6 +27,10 @@ ap.add_argument("--out", default="results/tabletop_eval.json")
 ap.add_argument("--video", default="", help="mp4 of env 0's first episodes")
 ap.add_argument("--video_eps", type=int, default=3)
 ap.add_argument("--cams", default="both", choices=("both", "wrist"), help="wrist: render/send the wrist camera only (scene may lack 'front')")
+ap.add_argument("--diag", type=int, default=0, help="log per-episode grasp diagnostics: min gripper-object distance, where the jaw closed, lift")
+ap.add_argument("--warmup_spec", default="", help="hypothesis test: the scripted expert (this spec) drives the first --warmup_steps after each reset, then the policy (fresh memory) takes over")
+ap.add_argument("--warmup_steps", type=int, default=30)
+ap.add_argument("--jpeg", type=int, default=0, help="JPEG-encode the policy images at this quality (training frames are JPEG q90)")
 ap.add_argument("--dry_run", action="store_true", help="no Isaac: fake wrist-only scene (policy_io.FakeTabletop); --port 0 = fake policy")
 a = ap.parse_args()
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -63,17 +67,50 @@ def main():
     for _ in range(10):
         env.step(np.tile(tt.HOME, (n, 1)))
     env.t[:] = 0
+    kin = runner = None
+    if a.diag or a.warmup_spec:
+        from tabletop_expert import Expert
+        kin = Expert(env, np.random.default_rng(0))
+    if a.warmup_spec:
+        from traj_core import TrajRunner
+        runner = TrajRunner(env, json.load(open(a.warmup_spec)), np.random.default_rng(1)); runner.reset()
+    D = [dict(dmin=9.0, t_dmin=None, close_t=None, close_d=None, was_open=False, lift=0.0) for _ in range(env.n)]
     cur = env.state().copy()                   # last commanded target per env
-    plan = [None] * n; kp = np.zeros(n, int)
+    plan = [None] * n; kp = np.zeros(n, int); fresh = np.ones(n, bool)     # fresh: episode started, memory must be reset
     res, frames, ep0 = [], [], 0
     t0 = time.time()
     while len(res) < a.episodes:
         S = env.state()
-        need = [i for i in range(n) if plan[i] is None or kp[i] >= len(plan[i])]
+        warm = np.array([runner is not None and env.t[i] < a.warmup_steps for i in range(n)])
+        wcmd = runner.step() if runner is not None else None
+        if kin is not None:                          # grasp diagnostics (graspable target objects)
+            tcp = kin.tcp_pose()[0].cpu().numpy()
+            for i in range(n):
+                E = env.ep[i]
+                if E["obj"] not in tt.GRASP:
+                    continue
+                g, _ = env.grasp_point(E["obj"], i); d = float(np.linalg.norm(tcp[i] - g)); dd = D[i]
+                if d < dd["dmin"]:
+                    dd["dmin"], dd["t_dmin"] = d, round(env.t[i] / tt.CTRL_HZ, 2)
+                if S[i, 5] > 0.5:
+                    dd["was_open"] = True
+                if dd["was_open"] and dd["close_t"] is None and S[i, 5] < 0.25 and not warm[i]:
+                    dd["close_t"], dd["close_d"] = round(env.t[i] / tt.CTRL_HZ, 2), round(d, 4)
+                dd["lift"] = max(dd["lift"], float(env.pos(E["obj"])[i][2] + tt.OBJ_META[E["obj"]]["zmin"]))
+        need = [i for i in range(n) if (plan[i] is None or kp[i] >= len(plan[i])) and not warm[i]]
+        for i in range(n):
+            if warm[i] and env.t[i] == a.warmup_steps - 1:
+                fresh[i] = True; plan[i] = None
         if need or (a.video and ep0 < a.video_eps):
             imgs = pio.get_images(env, a.cams)
+            if a.jpeg:
+                import io as _io
+                from PIL import Image as _I
+                def _j(x):
+                    b_ = _io.BytesIO(); _I.fromarray(x).save(b_, format="JPEG", quality=a.jpeg); return np.asarray(_I.open(b_).convert("RGB"))
+                imgs = {k_: np.stack([_j(x) for x in v_]) for k_, v_ in imgs.items()}
         if need:
-            conn.send(pio.build_request(S, need, imgs, [E["text"] for E in env.ep], a.cams))
+            conn.send(pio.build_request(S, need, imgs, [E["text"] for E in env.ep], a.cams, fresh)); fresh[need] = False
             chunks = np.asarray(conn.recv(), dtype=np.float64)
             for j, i in enumerate(need):
                 seq, prev = [], cur[i]
@@ -82,7 +119,11 @@ def main():
                     seq += [prev + (nxt - prev) * (s + 1) / step for s in range(step)]
                     prev = nxt
                 plan[i], kp[i] = seq, 0
-        cmd = np.stack([plan[i][kp[i]] for i in range(n)]); kp += 1; cur = cmd.copy()
+        cmd = np.stack([wcmd[i] if warm[i] else plan[i][kp[i]] for i in range(n)])
+        for i in range(n):
+            if not warm[i]:
+                kp[i] += 1
+        cur = cmd.copy()
         if a.video and ep0 < a.video_eps:
             frames.append(pio.video_frame(imgs, a.cams))
         env.step(cmd)
@@ -97,12 +138,18 @@ def main():
                      and env.pos(o)[i][2] + tt.OBJ_META[o]["zmin"] > 0.03]
             res.append(dict(success=bool(succ[i]), task=E["task"], obj=E["obj"], text=E["text"], t=round(env.t[i] / tt.CTRL_HZ, 2),
                             wrong_obj=wrong, n_present=len(E.get("present", []))))
+            if kin is not None:
+                dd = D[i]; res[-1].update(dmin_cm=round(100 * dd["dmin"], 1), t_dmin=dd["t_dmin"], close_t=dd["close_t"],
+                                          close_d_cm=None if dd["close_d"] is None else round(100 * dd["close_d"], 1), lift_cm=round(100 * dd["lift"], 1))
+                D[i] = dict(dmin=9.0, t_dmin=None, close_t=None, close_d=None, was_open=False, lift=0.0)
             if i == 0:
                 ep0 += 1
             print(json.dumps(res[-1] | {"n": len(res), "sr": round(float(np.mean([r["success"] for r in res])), 3), "el": round(time.time() - t0)}), flush=True)
         env.reset(env_ids=done, settle=0)
         for i in done:
-            plan[i] = None; cur[i] = env.state()[i]
+            plan[i] = None; cur[i] = env.state()[i]; fresh[i] = True
+            if runner is not None:
+                runner.reset_env(i)
     res = res[: a.episodes]
     by = {}
     for r in res:

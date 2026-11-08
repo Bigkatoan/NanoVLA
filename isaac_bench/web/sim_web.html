@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SO-101 Sim Control</title>
+<style>
+:root { --bg:#f4f5f2; --panel:#ffffff; --fg:#1d2420; --mut:#66706a; --line:#dde1dc; --acc:#2f7d5b; --acc2:#e0f0e7; --warn:#b4462f; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root { --bg:#121614; --panel:#1b211e; --fg:#e4e9e5; --mut:#8e9a93; --line:#2b332f; --acc:#5fc193; --acc2:#1f3329; --warn:#e2775f; color-scheme: dark; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+       padding: 16px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left)); }
+h1 { font-size:18px; margin:0; letter-spacing:.01em; }
+header { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:baseline; margin-bottom:12px; }
+.pill { font:12px ui-monospace, Menlo, monospace; padding:2px 8px; border-radius:99px; background:var(--acc2); color:var(--acc); }
+.pill.off { background:transparent; color:var(--warn); border:1px solid var(--warn); }
+.grid { display:grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap:12px; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0,1fr); } }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; min-width:0; }
+.card h2 { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--mut); margin:0 0 8px; font-weight:600; }
+.views { display:grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr); gap:12px; }
+@media (max-width: 560px) { .views { grid-template-columns: minmax(0,1fr); } }
+img.cam { width:100%; aspect-ratio: 4 / 3; background:#000; border-radius:6px; display:block; object-fit:contain; }
+.task { font-size:15px; margin:10px 0 0; } .task b { color:var(--acc); }
+.row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+button { font:inherit; padding:7px 12px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--fg); cursor:pointer; touch-action:manipulation; }
+button:hover { border-color:var(--acc); } button.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+.pad { display:grid; grid-template-columns: repeat(3, 56px); gap:6px; justify-content:start; }
+.pad button { height:48px; padding:0; font-weight:600; user-select:none; -webkit-user-select:none; }
+.pads { display:flex; flex-wrap:wrap; gap:18px; margin:6px 0 10px; }
+.lbl { font-size:12px; color:var(--mut); margin:2px 0 4px; }
+.joint { display:grid; grid-template-columns: 80px minmax(0,1fr) 56px; gap:8px; align-items:center; margin:4px 0; font-size:13px; }
+.joint input { width:100%; accent-color: var(--acc); }
+.num { font:12px ui-monospace, Menlo, monospace; color:var(--mut); text-align:right; }
+.kv { font:12px ui-monospace, Menlo, monospace; color:var(--mut); display:grid; grid-template-columns:auto 1fr; gap:2px 10px; }
+.speed { display:flex; gap:8px; align-items:center; } .speed input { flex:1; accent-color:var(--acc); }
+kbd { font:11px ui-monospace, Menlo, monospace; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px; padding:0 4px; }
+.help { color:var(--mut); font-size:12px; margin-top:8px; }
+.ok { color:var(--acc); font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SO-101 · Isaac Sim</h1>
+  <span id="conn" class="pill off">đang kết nối…</span>
+  <span id="hz" class="pill">– Hz</span>
+  <span id="succ" class="pill off">chưa xong</span>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <div class="views">
+      <div><h2>Camera phía trước</h2><img id="front" class="cam" alt="front camera"></div>
+      <div><h2>Camera cổ tay</h2><img id="wrist" class="cam" alt="wrist camera"></div>
+    </div>
+    <p class="task">Nhiệm vụ của cảnh: <b id="task">–</b></p>
+  </div>
+
+  <div class="card">
+    <h2>Điều khiển đầu kẹp (Cartesian, IK)</h2>
+    <div class="pads">
+      <div><div class="lbl">Ngang (x / y)</div>
+        <div class="pad">
+          <span></span><button data-v="1,0,0">↑</button><span></span>
+          <button data-v="0,1,0">←</button><button data-grip>✊</button><button data-v="0,-1,0">→</button>
+          <span></span><button data-v="-1,0,0">↓</button><span></span>
+        </div></div>
+      <div><div class="lbl">Cao / xoay</div>
+        <div class="pad">
+          <button data-w="1">⟲</button><button data-v="0,0,1">▲</button><button data-w="-1">⟳</button>
+          <span></span><button data-v="0,0,-1">▼</button><span></span>
+        </div></div>
+    </div>
+    <div class="speed"><span class="lbl">Tốc độ</span><input id="speed" type="range" min="0.02" max="0.2" step="0.01" value="0.08"><span id="speedv" class="num">8 cm/s</span></div>
+    <div class="row" style="margin-top:10px">
+      <button id="open">Mở kẹp</button><button id="close">Đóng kẹp</button>
+      <button id="home">Về Home</button><button id="reset">Cảnh mới</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span class="lbl">IK:</span><button id="ik_an" class="on">Giải tích (DLS)</button><button id="ik_nano">NanoIK (học)</button>
+    </div>
+    <p class="help">Bàn phím: <kbd>W</kbd><kbd>S</kbd> tiến/lùi · <kbd>A</kbd><kbd>D</kbd> trái/phải · <kbd>R</kbd><kbd>F</kbd> lên/xuống · <kbd>Q</kbd><kbd>E</kbd> xoay · <kbd>Space</kbd> đóng/mở kẹp · <kbd>H</kbd> Home</p>
+
+    <h2 style="margin-top:14px">Góc khớp (rad)</h2>
+    <div id="joints"></div>
+    <div class="row" style="margin-top:6px"><button id="sendj">Gửi góc khớp</button><span class="lbl">kéo slider rồi bấm gửi (hoặc thả chuột)</span></div>
+
+    <h2 style="margin-top:14px">Trạng thái</h2>
+    <div class="kv" id="kv"></div>
+  </div>
+</div>
+
+<script>
+const NAMES = ["shoulder_pan","shoulder_lift","elbow_flex","wrist_flex","wrist_roll","gripper"];
+const $ = id => document.getElementById(id);
+let ws, st = null, gripOpen = true, editing = false, held = { v:[0,0,0], w:0 }, keys = new Set();
+let urls = {0:null, 1:null};
+
+function connect() {
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  ws = new WebSocket(`${proto}://${location.host}/ws`); ws.binaryType = "blob";
+  ws.onopen = () => { $("conn").textContent = "đã kết nối"; $("conn").className = "pill"; };
+  ws.onclose = () => { $("conn").textContent = "mất kết nối — thử lại…"; $("conn").className = "pill off"; setTimeout(connect, 1500); };
+  ws.onmessage = async ev => {
+    if (typeof ev.data === "string") { st = JSON.parse(ev.data); render(); return; }
+    const buf = await ev.data.arrayBuffer(); const kind = new Uint8Array(buf, 0, 1)[0];
+    const url = URL.createObjectURL(new Blob([buf.slice(1)], {type:"image/jpeg"}));
+    const img = kind === 0 ? $("front") : $("wrist"); img.src = url;
+    if (urls[kind]) URL.revokeObjectURL(urls[kind]); urls[kind] = url;
+  };
+}
+function send(m) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(m)); }
+
+// joint sliders
+const jw = $("joints");
+NAMES.forEach((n, i) => {
+  const d = document.createElement("div"); d.className = "joint";
+  d.innerHTML = `<span>${n}</span><input type="range" step="0.01" min="-3.2" max="3.2" id="j${i}"><span class="num" id="jv${i}">–</span>`;
+  jw.appendChild(d);
+  const s = d.querySelector("input");
+  s.addEventListener("pointerdown", () => editing = true);
+  s.addEventListener("input", () => { editing = true; $("jv"+i).textContent = (+s.value).toFixed(2); });
+  s.addEventListener("change", () => sendJoints());
+});
+function sendJoints() { send({type:"joints", q: NAMES.map((_, i) => +$("j"+i).value)}); setTimeout(() => editing = false, 600); }
+$("sendj").onclick = sendJoints;
+
+function render() {
+  if (!st) return;
+  $("task").textContent = st.task; $("hz").textContent = `${st.sim_hz} Hz`;
+  $("succ").textContent = st.success ? "hoàn thành ✓" : "chưa xong"; $("succ").className = st.success ? "pill" : "pill off";
+  st.lim.forEach((l, i) => { const s = $("j"+i); s.min = l[0]; s.max = l[1]; });
+  if (!editing) st.q.forEach((q, i) => { $("j"+i).value = q; $("jv"+i).textContent = q.toFixed(2); });
+  $("ik_nano").disabled = !st.nano_ik;
+  $("ik_an").className = st.mode === "analytic" ? "on" : ""; $("ik_nano").className = st.mode === "nano" ? "on" : "";
+  $("kv").innerHTML = `<span>TCP (m)</span><span>${st.tcp.map(x => x.toFixed(3)).join(", ")}</span>` +
+                      `<span>yaw (rad)</span><span>${st.yaw.toFixed(2)}</span><span>t (s)</span><span>${st.t}</span>`;
+}
+
+// jog: pressed buttons + keys -> velocity, re-sent at 20 Hz while held
+const KEYMAP = { w:[1,0,0], s:[-1,0,0], a:[0,1,0], d:[0,-1,0], r:[0,0,1], f:[0,0,-1] };
+function velocity() {
+  const sp = +$("speed").value; let v = [...held.v], w = held.w;
+  keys.forEach(k => { if (KEYMAP[k]) KEYMAP[k].forEach((x, i) => v[i] += x); if (k === "q") w += 1; if (k === "e") w -= 1; });
+  return { v: v.map(x => Math.max(-1, Math.min(1, x)) * sp), w: Math.max(-1, Math.min(1, w)) * 0.8 };
+}
+setInterval(() => { const j = velocity(); if (j.v.some(x => x) || j.w) send({type:"jog", ...j}); }, 50);
+document.querySelectorAll("[data-v],[data-w]").forEach(b => {
+  const on = e => { e.preventDefault(); if (b.dataset.v) held.v = b.dataset.v.split(",").map(Number); if (b.dataset.w) held.w = +b.dataset.w; };
+  const off = () => { held = { v:[0,0,0], w:0 }; send({type:"jog", v:[0,0,0], w:0}); };
+  b.addEventListener("pointerdown", on); ["pointerup","pointerleave","pointercancel"].forEach(t => b.addEventListener(t, off));
+});
+function grip(open) { gripOpen = open; send({type:"grip", open}); }
+document.querySelector("[data-grip]").onclick = () => grip(!gripOpen);
+$("open").onclick = () => grip(true); $("close").onclick = () => grip(false);
+$("home").onclick = () => send({type:"home"}); $("reset").onclick = () => { gripOpen = true; send({type:"reset"}); };
+$("ik_an").onclick = () => send({type:"ik_mode", mode:"analytic"}); $("ik_nano").onclick = () => send({type:"ik_mode", mode:"nano"});
+$("speed").oninput = () => $("speedv").textContent = `${Math.round($("speed").value * 100)} cm/s`;
+addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return; const k = e.key.toLowerCase();
+  if (k === " ") { e.preventDefault(); if (!e.repeat) grip(!gripOpen); return; }
+  if (k === "h") { send({type:"home"}); return; }
+  if (KEYMAP[k] || k === "q" || k === "e") { keys.add(k); e.preventDefault(); }
+});
+addEventListener("keyup", e => { keys.delete(e.key.toLowerCase()); if (!keys.size) send({type:"jog", v:[0,0,0], w:0}); });
+addEventListener("blur", () => { keys.clear(); held = { v:[0,0,0], w:0 }; });
+connect();
+</script>
+</body>
+</html>

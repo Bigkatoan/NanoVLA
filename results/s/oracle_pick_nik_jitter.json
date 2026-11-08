@@ -1,0 +1,260 @@
+{
+ "tasks": "pick",
+ "episodes": 12,
+ "success_rate": 0.8333333333333334,
+ "by": {
+  "pick": [
+   10,
+   12
+  ],
+  "green_hex": [
+   1,
+   1
+  ],
+  "tuna_can": [
+   2,
+   2
+  ],
+  "green_block": [
+   1,
+   1
+  ],
+  "marker": [
+   1,
+   1
+  ],
+  "orange_bar": [
+   2,
+   2
+  ],
+  "meat_can": [
+   1,
+   1
+  ],
+  "banana": [
+   1,
+   1
+  ],
+  "soup_can": [
+   1,
+   1
+  ],
+  "red_block": [
+   0,
+   1
+  ],
+  "sponge": [
+   0,
+   1
+  ]
+ },
+ "query_every": 6,
+ "jitter": 3,
+ "seed": 30000,
+ "results": [
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "green_hex",
+   "text": "pick up the hexagon block",
+   "t": 8.37,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.3,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 4.8
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "tuna_can",
+   "text": "pick up the small tuna can",
+   "t": 8.6,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.3,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "green_block",
+   "text": "pick up the green block",
+   "t": 9.13,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.9,
+   "close_t": 7.4,
+   "close_d_cm": 1.9,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "marker",
+   "text": "pick up the marker",
+   "t": 9.17,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.9,
+   "close_t": 7.37,
+   "close_d_cm": 1.6,
+   "lift_cm": 5.0
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "orange_bar",
+   "text": "pick up the bar",
+   "t": 6.97,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.6,
+   "close_t": 5.9,
+   "close_d_cm": 0.6,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "meat_can",
+   "text": "pick up the meat can",
+   "t": 10.57,
+   "state_seq": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "dmin_cm": 1.2,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 5.0
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "banana",
+   "text": "pick up the banana",
+   "t": 4.7,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.1,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "soup_can",
+   "text": "pick up the small soup can",
+   "t": 15.4,
+   "state_seq": [
+    0,
+    1,
+    2,
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.1,
+   "close_t": 5.8,
+   "close_d_cm": 2.4,
+   "lift_cm": 5.0
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "red_block",
+   "text": "pick up the red block",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    3
+   ],
+   "dmin_cm": 0.2,
+   "close_t": 5.43,
+   "close_d_cm": 1.9,
+   "lift_cm": 0.7
+  },
+  {
+   "success": false,
+   "task": "pick",
+   "obj": "sponge",
+   "text": "pick up the sponge",
+   "t": 30.0,
+   "state_seq": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "dmin_cm": 0.5,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "tuna_can",
+   "text": "pick up the small tuna can",
+   "t": 9.1,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 1.0,
+   "close_t": null,
+   "close_d_cm": null,
+   "lift_cm": 4.9
+  },
+  {
+   "success": true,
+   "task": "pick",
+   "obj": "orange_bar",
+   "text": "pick up the bar",
+   "t": 9.47,
+   "state_seq": [
+    0,
+    1,
+    2
+   ],
+   "dmin_cm": 0.9,
+   "close_t": 7.3,
+   "close_d_cm": 0.9,
+   "lift_cm": 5.0
+  }
+ ]
+}

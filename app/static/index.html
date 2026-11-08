@@ -8,13 +8,10 @@
 /* Layout: left rail = the 4-step workflow (where am I, what is next); one focused workspace; activity bar at the top
    shows running jobs from anywhere. Spacing scale 4/8/12/16/24/32, type scale 12/13/14/16/20/24. */
 :root {
-  --bg:#f4f4f4; --surface:#ffffff; --sunken:#ededed; --fg:#111111; --mut:#555555; --faint:#8c8c8c; --line:#dcdcdc;
-  --acc:#111111; --acc-fg:#ffffff; --acc-soft:#e9e9e9; --warn:#333333; --warn-soft:#f1f1f1; --bad:#000000; --bad-soft:#e6e6e6;
-  --r:10px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color-scheme: light;
+  --bg:#0b0b0b; --surface:#141414; --sunken:#1c1c1c; --fg:#ececec; --mut:#a3a3a3; --faint:#6b6b6b; --line:#272727;
+  --acc:#ececec; --acc-fg:#0b0b0b; --acc-soft:#232323; --warn:#d0d0d0; --warn-soft:#1a1a1a; --bad:#ffffff; --bad-soft:#262626;
+  --r:10px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) { :root {
-  --bg:#0c0c0c; --surface:#161616; --sunken:#1f1f1f; --fg:#f2f2f2; --mut:#a8a8a8; --faint:#6e6e6e; --line:#2c2c2c;
-  --acc:#f2f2f2; --acc-fg:#0c0c0c; --acc-soft:#262626; --warn:#d6d6d6; --warn-soft:#1c1c1c; --bad:#ffffff; --bad-soft:#2a2a2a; color-scheme: dark; } }
 * { box-sizing: border-box; }
 html, body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 a { color:var(--fg); }
@@ -65,6 +62,9 @@ input[type=text], input[type=number], select { width:100%; background:var(--surf
 input::placeholder { color:var(--faint); }
 input[type=checkbox] { width:16px; height:16px; accent-color:var(--acc); }
 .check { display:flex; align-items:center; gap:10px; font-size:13.5px; }
+.seg { display:inline-flex; border:1px solid var(--line); border-radius:9px; padding:3px; gap:3px; margin-bottom:20px; background:var(--surface); }
+.seg button { border:0; background:none; padding:7px 14px; border-radius:7px; font-weight:600; color:var(--mut); cursor:pointer; }
+.seg button[aria-selected="true"] { background:var(--acc); color:var(--acc-fg); }
 .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; min-height:40px; padding:0 16px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-weight:600; cursor:pointer; text-decoration:none; color:var(--fg); }
 .btn:hover { border-color:var(--faint); }
 .btn.primary { background:var(--acc); border-color:var(--acc); color:var(--acc-fg); }
@@ -117,10 +117,10 @@ details.adv .fields, details.adv > p { margin-top:14px; }
 .prog { height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; margin-top:6px; } .prog i { display:block; height:100%; background:var(--fg); }
 pre.log { font:12px/1.5 var(--mono); background:var(--sunken); border-radius:8px; padding:12px; max-height:300px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; margin:12px 0 0; color:var(--mut); }
 dialog { border:1px solid var(--line); border-radius:12px; padding:0; width:min(560px, calc(100vw - 32px)); background:var(--surface); color:var(--fg); }
-dialog::backdrop { background:rgba(0,0,0,.5); }
+dialog::backdrop { background:rgba(0,0,0,.7); }
 dialog .pb { max-height:70vh; overflow:auto; }
 dialog .df { display:flex; justify-content:flex-end; gap:10px; padding:14px 20px; border-top:1px solid var(--line); }
-.drawer { position:fixed; top:0; right:0; height:100vh; width:min(440px, 100vw); background:var(--surface); border-left:1px solid var(--line); z-index:20; display:flex; flex-direction:column; box-shadow:-12px 0 32px rgba(0,0,0,.10); }
+.drawer { position:fixed; top:0; right:0; height:100vh; width:min(440px, 100vw); background:var(--surface); border-left:1px solid var(--line); z-index:20; display:flex; flex-direction:column; box-shadow:-12px 0 32px rgba(0,0,0,.6); }
 .drawer .ph { justify-content:space-between; } .drawer .body { overflow:auto; flex:1; }
 .job { padding:16px 20px; border-top:1px solid var(--line); } .job:first-child { border-top:0; }
 .job .row1 { display:flex; justify-content:space-between; gap:10px; align-items:center; } .job .row1 b { font-size:14px; }
@@ -133,7 +133,7 @@ dialog .df { display:flex; justify-content:flex-end; gap:10px; padding:14px 20px
   <nav class="rail" aria-label="Quy trình">
     <div class="brand"><b>NanoVLA Studio</b><span>Dạy robot SO-101 tác vụ mới</span></div>
     <ol class="steps">
-      <li><a href="#collect" data-step="collect"><span class="n">1</span><span class="t">Thu thập demo<span class="s" id="sub-collect">Ghi bằng tay leader</span></span></a></li>
+      <li><a href="#collect" data-step="collect"><span class="n">1</span><span class="t">Thu thập demo<span class="s" id="sub-collect">Robot thật hoặc Isaac Sim</span></span></a></li>
       <li><a href="#data" data-step="data"><span class="n">2</span><span class="t">Chọn dataset<span class="s" id="sub-data">–</span></span></a></li>
       <li><a href="#distill" data-step="distill"><span class="n">3</span><span class="t">Distill<span class="s" id="sub-distill">Tạo model nhỏ</span></span></a></li>
       <li><a href="#models" data-step="models"><span class="n">4</span><span class="t">Model và chạy robot<span class="s" id="sub-models">–</span></span></a></li>
@@ -170,10 +170,10 @@ const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&
 const api = (u, o) => fetch(u, o).then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Máy chủ không phản hồi (" + r.status + ")"); return j; });
 const post = (u, b) => api(u, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(b || {})});
 const S = { status:null, ds:[], models:[], jobs:[], sel:null, selModel:null, dsDetail:{} };
-const KIND = {distill:"Distill", collect:"Thu thập demo", dagger:"Cải thiện model", teacher:"Train model thầy", import:"Tải dataset", run:"Chạy trên robot"};
+const KIND = {distill:"Distill", collect:"Thu thập demo", dagger:"Cải thiện model", teacher:"Train model thầy", import:"Tải dataset", run:"Chạy trên robot", sim_collect:"Demo Isaac Sim", sim_eval:"Thử trong Isaac Sim"};
 const STAGE = {prepare:"Kiểm tra dataset", fewshot:"Dạy thầy tác vụ mới", eval_teacher:"Đánh giá thầy", label_train:"Thầy gán nhãn", label_test:"Chuẩn bị bộ kiểm tra",
   student:"Train model trò", package:"Đóng gói", record:"Ghi demo", robot:"Robot đang chạy", label_dagger:"Thầy sửa dữ liệu mới", download:"Tải về", prepare_import:"Chuẩn bị dataset",
-  select:"Chọn dataset công khai", merge:"Gộp dataset", train:"Train thầy"};
+  select:"Chọn dataset công khai", merge:"Gộp dataset", train:"Train thầy", generate:"Expert làm demo trong sim", convert:"Chuyển sang dataset", isaac:"Chạy trong Isaac Sim"};
 function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 4000); }
 const dur = s => s < 60 ? Math.max(1, Math.round(s)) + " giây" : s < 3600 ? Math.round(s / 60) + " phút" : (s / 3600).toFixed(1).replace(".", ",") + " giờ";
 const ago = t => { const s = Date.now() / 1000 - t; return s < 90 ? "vừa xong" : s < 3600 ? Math.round(s / 60) + " phút trước" : s < 86400 ? Math.round(s / 3600) + " giờ trước" : Math.round(s / 86400) + " ngày trước"; };
@@ -206,9 +206,13 @@ function portOptions(sel) {
   const ports = S.status?.devices.serial || [];
   return ports.length ? ports.map(p => `<option ${p === sel ? "selected" : ""}>${esc(p)}</option>`).join("") : `<option value="">Chưa thấy thiết bị</option>`;
 }
+let SRC = "robot";
+const SIM_TASKS = {pick:"Gắp vật lên", place:"Đặt vật lên đĩa / khay / hộp", push:"Đẩy vật", rotate:"Xoay vật"};
 function viewCollect() {
+  const tabs = `<div class="seg" role="tablist" aria-label="Nguồn demo"><button role="tab" aria-selected="${SRC === "robot"}" data-src="robot">Robot thật</button><button role="tab" aria-selected="${SRC === "sim"}" data-src="sim">Isaac Sim</button></div>`;
+  if (SRC === "sim") return viewCollectSim(tabs);
   const ports = S.status?.devices.serial || [], cams = S.status?.devices.cameras || [];
-  $("#work").innerHTML = `
+  $("#work").innerHTML = `${tabs}
   <p class="lead">Điều khiển robot bằng tay leader để làm mẫu tác vụ. Mỗi câu lệnh nên có ít nhất 3 demo, với vị trí vật khác nhau.</p>
   <div class="stack">
   ${ports.length < 2 ? `<div class="note warn" role="alert">Cần cắm cả robot và tay leader qua USB (đang thấy ${ports.length} thiết bị). Trang tự cập nhật khi cắm.</div>` : ""}
@@ -232,6 +236,7 @@ function viewCollect() {
     <div class="actions"><button class="btn primary" type="submit" ${ports.length < 2 ? "disabled" : ""}>Bắt đầu ghi</button><span class="hint">Giữa các demo có thời gian nghỉ để đặt lại vật.</span></div>
     </div>
   </form></div>`;
+  bindSeg();
   $("#f-collect").onsubmit = async e => {
     e.preventDefault(); const f = e.target; if (!f.reportValidity()) return;
     const p = {name:$("#c-name").value.trim(), task:$("#c-task").value.trim(), episodes:+$("#c-eps").value, episode_s:+$("#c-eps-s").value, reset_s:+$("#c-reset").value,
@@ -239,6 +244,25 @@ function viewCollect() {
     if (p.robot_port === p.leader_port) return toast("Robot và tay leader phải là hai cổng khác nhau.");
     try { await post("/api/jobs", {kind:"collect", params:p}); toast("Đang ghi demo. Theo dõi ở nút Hoạt động."); refresh(); openDrawer(); } catch (err) { toast(err.message); }
   };
+}
+
+function bindSeg() { document.querySelectorAll("[data-src]").forEach(b => b.onclick = () => { SRC = b.dataset.src; viewCollect(); }); }
+function viewCollectSim(tabs) {
+  $("#work").innerHTML = `${tabs}
+  <p class="lead">Expert có sẵn trong Isaac Sim tự làm demo: camera cổ tay + camera phía trước, góc khớp đổi sang độ như robot thật. Dùng để thử toàn bộ pipeline và đo tỉ lệ thành công mà không cần robot.</p>
+  <form class="panel" id="f-sim" novalidate>
+    <div class="ph"><div><h2>Demo trong Isaac Sim</h2><p>Vật, vị trí, ánh sáng và vân bàn được ngẫu nhiên hoá mỗi demo.</p></div></div>
+    <div class="pb"><div class="fields">
+      <label class="field"><span>Tác vụ</span><select id="s-task">${Object.entries(SIM_TASKS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></label>
+      <label class="field"><span>Số demo</span><select id="s-n"><option value="1">75 (khoảng 20 phút)</option><option value="2" selected>150 (khoảng 40 phút)</option><option value="4">300 (khoảng 80 phút)</option></select></label>
+      <label class="field wide"><span>Tên dataset</span><input type="text" id="s-name" required pattern="[A-Za-z0-9_\\-]+" value="sim_pick"><small>Ba vật glue stick, spool, toy brick không có trong demo, để thử vật mới.</small></label>
+    </div>
+    <div class="actions"><button class="btn primary" type="submit">Sinh demo</button>${S.status?.gpu_busy ? '<span class="hint">GPU đang bận: sẽ chạy khi tới lượt.</span>' : ""}</div></div>
+  </form>`;
+  bindSeg();
+  $("#s-task").onchange = e => { if (/^sim_/.test($("#s-name").value)) $("#s-name").value = "sim_" + e.target.value; };
+  $("#f-sim").onsubmit = async e => { e.preventDefault(); if (!e.target.reportValidity()) return;
+    try { await post("/api/jobs", {kind:"sim_collect", params:{name:$("#s-name").value.trim(), task:$("#s-task").value, chunks:+$("#s-n").value}}); toast("Đang sinh demo trong Isaac Sim"); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
 }
 
 // ------------------------------------------------------------------ 2 datasets
@@ -334,7 +358,8 @@ function viewModels() {
       <div class="ph"><div><h2>${esc(m.name)}</h2><p>${(m.student?.params_M ?? 13.3).toString().replace(".", ",")} triệu tham số · ${(m.student?.ms_fp16_3060 ?? 0).toFixed(1).replace(".", ",")} ms mỗi lần (RTX 3060)</p></div></div>
       <div class="pb">
         ${metricRows(m)}
-        <div class="actions"><button class="btn primary" type="button" id="m-run">Chạy trên robot</button>${m.has_zip ? `<a class="btn" href="/models/${encodeURIComponent(m.name)}.zip" download>Tải model (.zip)</a>` : ""}</div>
+        ${(m.sim || []).length ? `<dl class="kv">${m.sim.slice(-3).reverse().map(r => `<dt>Isaac Sim · ${esc(r.tasks)}</dt><dd><b>${Math.round(r.success_rate * 100)}%</b> thành công (${Math.round(r.success_rate * r.episodes)}/${r.episodes} lần thử) · ${esc(r.when)}</dd>`).join("")}</dl>` : ""}
+        <div class="actions"><button class="btn primary" type="button" id="m-run">Chạy trên robot</button><button class="btn" type="button" id="m-sim">Thử trong Isaac Sim</button>${m.has_zip ? `<a class="btn" href="/models/${encodeURIComponent(m.name)}.zip" download>Tải model (.zip)</a>` : ""}</div>
         <details class="adv"><summary>Cải thiện bằng DAgger</summary>
           <p class="hint">Chạy trên robot với tuỳ chọn "Ghi lại để cải thiện", rồi chọn lần ghi đó. Thầy sửa các hành động trò làm sai và trò được train lại.</p>
           ${dag.length ? `<div class="fields"><label class="field"><span>Lần ghi từ robot</span><select id="m-dg">${dag.map(d => `<option>${esc(d.name)}</option>`).join("")}</select></label>
@@ -346,7 +371,7 @@ function viewModels() {
       </div>` : `<div class="empty"><b>Chọn một model</b></div>`}</div>
   </div>`;
   document.querySelectorAll(".item[data-m]").forEach(b => b.onclick = () => { S.selModel = b.dataset.m; viewModels(); });
-  if (m) { $("#m-run").onclick = () => runDialog(m);
+  if (m) { $("#m-run").onclick = () => runDialog(m); $("#m-sim").onclick = () => simDialog(m);
     const dg = $("#m-dagger"); if (dg) dg.onclick = async () => { const ds = S.ds.find(d => d.name === $("#m-dg").value);
       try { await post("/api/jobs", {kind:"dagger", params:{model:m.name, dataset:ds.root}}); toast("Đang cải thiện " + m.name); refresh(); openDrawer(); } catch (err) { toast(err.message); } }; }
 }
@@ -374,6 +399,22 @@ function runDialog(m) {
                record:$("#r-rec").checked, front_cam:+$("#r-fcam").value, dry_run:$("#r-dry").checked};
     if (!p.robot_port && !p.dry_run) return toast("Chưa có robot. Chọn chạy thử, hoặc cắm robot.");
     try { await post("/api/jobs", {kind:"run", params:p}); toast(p.dry_run ? "Đang chạy thử" : "Robot đang chạy"); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
+}
+
+function simDialog(m) {
+  const guess = Object.keys(SIM_TASKS).find(k => (m.name + " " + (m.dataset || "")).includes(k)) || "pick";
+  $("#dlg-title").textContent = "Thử " + m.name + " trong Isaac Sim";
+  $("#dlg-body").innerHTML = `<div class="fields">
+      <label class="field"><span>Tác vụ</span><select id="v-task">${Object.entries(SIM_TASKS).map(([k, v]) => `<option value="${k}" ${k === guess ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+      <label class="field"><span>Số lần thử</span><input type="number" id="v-n" value="24" min="4" max="200" step="4"></label>
+      <label class="check wide"><input type="checkbox" id="v-new">Chỉ dùng vật model chưa thấy (glue stick, spool, toy brick)</label></div>
+    <p class="hint" style="margin:16px 0 0">Model chỉ dùng camera cổ tay. Mỗi lần thử tối đa 25 giây mô phỏng; 24 lần mất khoảng 15 phút.</p>`;
+  $("#dlg-foot").innerHTML = `<button class="btn ghost" value="cancel">Huỷ</button><button class="btn primary" value="ok">Bắt đầu</button>`;
+  const dlg = $("#dlg"); dlg.returnValue = ""; dlg.showModal();
+  dlg.onclose = async () => { if (dlg.returnValue !== "ok") return;
+    const task = $("#v-task").value, tasks = {pick:"pick", place:"pad,tray,container", push:"push", rotate:"rotate"}[task];
+    const p = {model:m.name, tasks, episodes:+$("#v-n").value}; if ($("#v-new").checked) p.objects = "glue_stick,spool,toy_brick";
+    try { await post("/api/jobs", {kind:"sim_eval", params:p}); toast("Đang thử trong Isaac Sim"); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
 }
 
 // ------------------------------------------------------------------ settings (teacher)

@@ -16,6 +16,7 @@ from PIL import Image
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--out", required=True); ap.add_argument("--src", nargs="+", required=True)
     ap.add_argument("--hw", default="240x320"); ap.add_argument("--max_eps", type=int, default=0); ap.add_argument("--repo_id", default="local/nanovla_sim")
+    ap.add_argument("--scale", type=float, default=1.0, help="joint unit factor, 57.29578 = radians -> degrees (the real SO-101 convention)")
     ap.add_argument("--cams", default="wrist", help="wrist | wrist,front  (wrist -> camera1, front -> camera2); episodes missing a camera are skipped")
     a = ap.parse_args()
     from lerobot.datasets.lerobot_dataset import LeRobotDataset
@@ -49,7 +50,7 @@ def main():
                 for f_ in sorted(byf):
                     if f_ >= len(act) or any(c not in byf[f_] for c in CAMS):
                         continue
-                    fr = {"observation.state": st[f_].astype(np.float32), "action": act[f_].astype(np.float32), "task": str(byf[f_]["_t"])}
+                    fr = {"observation.state": (st[f_] * a.scale).astype(np.float32), "action": (act[f_] * a.scale).astype(np.float32), "task": str(byf[f_]["_t"])}
                     for c in CAMS:
                         im = Image.open(io.BytesIO(byf[f_][c])).convert("RGB")
                         if im.size != (W, H):

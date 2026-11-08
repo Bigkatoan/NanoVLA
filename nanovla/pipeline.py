@@ -8,6 +8,8 @@ Job kinds
   teacher  public SO-101 datasets (degrees) -> download -> merge -> SmolVLA teacher (hours)
   import   one public LeRobot dataset from the Hub -> data/lerobot/<owner>__<name>, prepared
   run      a finished student on the real SO-101 (deploy/run_student.py), optionally recording frames for DAgger
+  sim_collect  scripted demos in the Isaac Sim tabletop (wrist + front camera) -> LeRobot dataset in degrees
+  sim_eval     closed-loop success rate of a student in the Isaac Sim tabletop
 
     python -m nanovla.pipeline new distill '{"dataset": "data/lerobot/my_task", "name": "my_task"}'   # create + start
     python -m nanovla.pipeline run jobs/<id>                                                          # (used by new)
@@ -22,7 +24,10 @@ STAGES = {
     "teacher": ["select", "download", "merge", "train"],
     "import": ["download", "prepare_import"],
     "run": ["robot"],
+    "sim_collect": ["generate", "convert"],
+    "sim_eval": ["isaac"],
 }
+SIM_SPECS = {"pick": ("pick", "pick"), "place": ("place", "pad,tray,container"), "push": ("push", "push"), "rotate": ("rotate", "rotate")}
 
 
 def jdir(jid):
@@ -146,6 +151,50 @@ def run(jid):
                 if os.path.exists(root) and pr.get("resume", True):
                     cmd.append("--resume=true")
                 sh(st, name, cmd, gpu=False); res = dict(dataset=root)
+            # ---------------- Isaac Sim
+            elif name == "generate":
+                spec, tasks = SIM_SPECS[pr.get("task", "pick")]; raws = []
+                env = {"TABLETOP_FRONT": "1", "TABLETOP_RES": "240x320", "TABLETOP_CAM_SCALE": "1", "OMNI_KIT_ACCEPT_EULA": "YES", "TABLETOP_HOLDOUT": "glue_stick,spool,toy_brick"}
+                n = int(pr.get("chunks", 2))
+                for c in range(n):
+                    out = os.path.join(J, f"raw_c{c}"); raws.append(out)
+                    sh(st, name, [os.path.join(P.ROOT, "envs", "isaac_env", "bin", "python"), "-u", os.path.join(P.ROOT, "research", "isaac_bench", "traj_tool.py"),
+                       "--spec", os.path.join(P.ROOT, "research", "isaac_bench", "specs", f"{spec}.json"), "--tasks", tasks, "--episodes", str(pr.get("episodes_per_chunk", 75)),
+                       "--seed", str(int(pr.get("seed", 70000)) + 37 * c), "--skip_frames", "2", "--start_noise", "0.3", "--start_noise_p", "0.5",
+                       "--dart_mix", "0:0.3,0.03:0.4,0.08:0.3", "--slow_near", "2", "--num_envs", "12", "--out", out], env=env)
+                    st["progress"] = (c + 1) / n; save(st)
+                pr["raws"] = raws; res = dict(chunks=len(raws))
+            elif name == "convert":
+                out = os.path.join(P.DATA, pr["name"])
+                res = last_json(sh(st, name, [P.PY, os.path.join(P.ROOT, "research", "tools", "to_lerobot.py"), "--out", out, "--cams", "wrist,front", "--hw", "240x320",
+                                              "--scale", "57.29578", "--repo_id", f"local/{pr['name']}", "--src"] + pr["raws"], gpu=False))
+                from nanovla import merge as M
+                M.prepare(out); res = {k: v for k, v in M.describe(out).items() if k != "episodes_by_task"}
+                for r in pr["raws"]:
+                    shutil.rmtree(r, ignore_errors=True)
+            elif name == "isaac":
+                md = os.path.join(P.MODELS, pr["model"]); port = str(6200 + int(time.time()) % 500); out = os.path.join(J, "sim_eval.json")
+                srv = subprocess.Popen([P.PY, "-m", "nanovla.sim_server", "--model", md, "--port", port], cwd=P.ROOT, stdout=open(os.path.join(J, "sim_server.log"), "w"),
+                                       stderr=subprocess.STDOUT, env=dict(os.environ, PYTHONPATH=P.ROOT))
+                try:
+                    for _ in range(120):
+                        if '"ready"' in open(os.path.join(J, "sim_server.log")).read():
+                            break
+                        if srv.poll() is not None:
+                            raise RuntimeError("student server failed:\n" + open(os.path.join(J, "sim_server.log")).read()[-1500:])
+                        time.sleep(2)
+                    env = {"TABLETOP_RES": "240x320", "OMNI_KIT_ACCEPT_EULA": "YES"}
+                    cmd = [os.path.join(P.ROOT, "envs", "isaac_env", "bin", "python"), "-u", os.path.join(P.ROOT, "research", "isaac_bench", "tabletop_eval.py"),
+                           "--cams", "wrist", "--tasks", pr.get("tasks", "pick"), "--episodes", str(pr.get("episodes", 24)), "--num_envs", "4", "--port", port,
+                           "--diag", "1", "--out", out, "--video", os.path.join(J, "sim_eval.mp4")]
+                    if pr.get("objects"):
+                        cmd += ["--objects", pr["objects"]]
+                    sh(st, name, cmd, env=env)
+                finally:
+                    srv.kill()
+                r = json.load(open(out)); res = dict(success_rate=r["success_rate"], episodes=r["episodes"], tasks=r["tasks"], by=r.get("by", {}))
+                rp = os.path.join(md, "report.json"); rep = json.load(open(rp)); rep.setdefault("sim", []).append(dict(res, when=time.strftime("%Y-%m-%d %H:%M"), job=jid))
+                json.dump(rep, open(rp, "w"), indent=1)
             # ---------------- run a student on the robot
             elif st["kind"] == "run" and name == "robot":
                 md = os.path.join(P.MODELS, pr["model"])
@@ -221,6 +270,11 @@ def run(jid):
                 elif prev:
                     ev_t = prev.get("teacher", {})
                 stu = json.load(open(os.path.join(J, "student.json")))
+                try:                                                      # chunk spacing = the dataset's frame rate (sim data is 10 fps, real 30)
+                    from nanovla import merge as M
+                    mj = json.load(open(os.path.join(md, "meta.json"))); mj["fps"] = M.describe(os.path.abspath(pr["dataset"]))["fps"]; json.dump(mj, open(os.path.join(md, "meta.json"), "w"), indent=1)
+                except Exception:
+                    pass
                 rep = dict(name=name_, created=time.strftime("%Y-%m-%d %H:%M"), dataset=os.path.abspath(pr["dataset"]) if st["kind"] == "distill" else prev.get("dataset"),
                            tasks=json.load(open(os.path.join(md, "meta.json")))["tasks"], teacher_ckpt=pr.get("fewshot_ckpt") or prev.get("teacher_ckpt"),
                            teacher=ev_t, student=stu, labels=pr.get("labels_all") or [pr["label_train"]], label_test=pr["label_test"],

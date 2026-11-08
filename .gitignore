@@ -225,7 +225,6 @@ __marimo__/
 /envs/
 /third_party/
 /logs/
-/nanovla/
 research/isaac_bench/out/
 research/isaac_bench/results/
 research/isaac_bench/textures/*.png

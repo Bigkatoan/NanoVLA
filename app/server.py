@@ -4,7 +4,7 @@
 """
 import argparse, asyncio, glob, json, os, subprocess, time
 from aiohttp import web
-from nanovla import paths as P, pipeline as PL, merge as M
+from nanovla import paths as P, pipeline as PL, merge as M, preview as V
 
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 _desc_cache = {}
@@ -24,7 +24,7 @@ def describe_cached(root):
 def datasets():
     out = []
     for info in sorted(glob.glob(os.path.join(P.DATA, "*", "meta", "info.json"))):
-        d = dict(describe_cached(os.path.dirname(os.path.dirname(info)))); d.pop("episodes_by_task", None)
+        d = dict(describe_cached(os.path.dirname(os.path.dirname(info)))); d.pop("episodes_by_task", None); d["source"] = V.source(d["root"])
         d["root"] = os.path.relpath(d["root"], P.ROOT); out.append(d)
     return out
 
@@ -78,6 +78,34 @@ async def api_dataset(req):
     d = dict(describe_cached(root)); tr, te = M.default_split(d) if d.get("episodes_by_task") else ([], [])
     d["default_train"], d["default_test"] = tr, te; d["root"] = os.path.relpath(root, P.ROOT)
     return web.json_response(d)
+
+
+def _root(req):
+    root = os.path.join(P.DATA, os.path.basename(req.match_info["name"]))
+    if not os.path.exists(os.path.join(root, "meta", "info.json")):
+        raise web.HTTPNotFound()
+    return root
+
+
+async def api_ds_summary(req):
+    return web.json_response(await asyncio.get_event_loop().run_in_executor(None, V.summary, _root(req)))
+
+
+async def api_ds_episodes(req):
+    q = req.query; return web.json_response(await asyncio.get_event_loop().run_in_executor(None, V.episode_list, _root(req), int(q.get("offset", 0)), int(q.get("limit", 60))))
+
+
+async def api_ds_frame(req):
+    q = req.query
+    try:
+        b = await asyncio.get_event_loop().run_in_executor(None, V.frame, _root(req), int(q["ep"]), q.get("cam", "camera2"), float(q.get("f", 0.5)), int(q.get("w", 320)))
+    except (KeyError, ValueError, IndexError):
+        raise web.HTTPNotFound()
+    return web.Response(body=b, content_type="image/jpeg", headers={"Cache-Control": "max-age=86400"})
+
+
+async def api_ds_traj(req):
+    return web.json_response(await asyncio.get_event_loop().run_in_executor(None, V.trajectory, _root(req), int(req.query["ep"])))
 
 
 async def api_models(_):
@@ -135,7 +163,8 @@ async def model_zip(req):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--port", type=int, default=8092); ap.add_argument("--host", default="127.0.0.1"); a = ap.parse_args()
     app = web.Application()
-    app.add_routes([web.get("/", index), web.get("/api/status", api_status), web.get("/api/datasets", api_datasets), web.get("/api/datasets/{name}", api_dataset),
+    app.add_routes([web.get("/", index), web.get("/api/status", api_status), web.get("/api/datasets", api_datasets), web.get("/api/datasets/{name}", api_dataset), web.get("/api/datasets/{name}/summary", api_ds_summary),
+                    web.get("/api/datasets/{name}/episodes", api_ds_episodes), web.get("/api/datasets/{name}/frame", api_ds_frame), web.get("/api/datasets/{name}/trajectory", api_ds_traj),
                     web.get("/api/models", api_models), web.get("/api/jobs", api_jobs), web.get("/api/jobs/{id}", api_job), web.post("/api/jobs", api_new_job),
                     web.post("/api/jobs/{id}/stop", api_stop), web.post("/api/jobs/{id}/retry", api_retry), web.get("/models/{name}.zip", model_zip), web.static("/static", STATIC)])
     print(json.dumps(dict(event="ready", url=f"http://{a.host}:{a.port}")), flush=True)

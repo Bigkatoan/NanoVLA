@@ -151,6 +151,7 @@ def run(jid):
                 if os.path.exists(root) and pr.get("resume", True):
                     cmd.append("--resume=true")
                 sh(st, name, cmd, gpu=False); res = dict(dataset=root)
+                json.dump(dict(kind="robot", label="Real robot", robot_id=pr.get("robot_id")), open(os.path.join(root, "meta", "nanovla_source.json"), "w"))
             # ---------------- Isaac Sim
             elif name == "generate":
                 spec, tasks = SIM_SPECS[pr.get("task", "pick")]; raws = []
@@ -170,6 +171,7 @@ def run(jid):
                                               "--scale", "57.29578", "--repo_id", f"local/{pr['name']}", "--src"] + pr["raws"], gpu=False))
                 from nanovla import merge as M
                 M.prepare(out); res = {k: v for k, v in M.describe(out).items() if k != "episodes_by_task"}
+                json.dump(dict(kind="sim", label="Isaac Sim", task=pr.get("task")), open(os.path.join(out, "meta", "nanovla_source.json"), "w"))
                 for r in pr["raws"]:
                     shutil.rmtree(r, ignore_errors=True)
             elif name == "isaac":
@@ -297,6 +299,7 @@ def run(jid):
                 if os.path.exists(dst):
                     shutil.rmtree(dst)
                 shutil.move(src, dst); M.prepare(dst); d = M.describe(dst); res = {k: v for k, v in d.items() if k != "episodes_by_task"}
+                json.dump(dict(kind="hub", label="Hugging Face", repo=pr["repo_ids"][0]), open(os.path.join(dst, "meta", "nanovla_source.json"), "w"))
             elif name == "download":
                 sh(st, name, PYM + ["nanovla.hub", "download"] + pr["repo_ids"], gpu=False, env={"HF_HUB_OFFLINE": "0"})
                 pr["roots"] = [os.path.join(P.HF, r.replace("/", "__")) for r in pr["repo_ids"]]

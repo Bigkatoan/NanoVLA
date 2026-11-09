@@ -60,7 +60,7 @@ def main():
         env = tt.Tabletop(num_envs=a.num_envs, seed=a.seed, task_mix=tuple(a.tasks.split(",")))
     conn = pio.FakeConn(a.cams) if a.dry_run and a.port == 0 else Client(("localhost", a.port), authkey=b"vla-isaac")
     conn.send("meta"); meta = conn.recv(); step = meta["step"]
-    if meta.get("cams", "both") != a.cams:
+    if meta.get("cams", "both") == "both" and a.cams != "both":      # a wrist-only server can still be sent both cameras (video of the front view)
         raise SystemExit(f"policy server runs with cams={meta.get('cams', 'both')} but the client has --cams {a.cams}")
     n = env.n
     env.reset()

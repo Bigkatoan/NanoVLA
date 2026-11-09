@@ -37,7 +37,8 @@ button, input, select { font:inherit; color:inherit; }
 .sys div { display:flex; align-items:center; gap:8px; color:var(--mut); }
 .dot { width:8px; height:8px; border-radius:50%; background:var(--faint); flex:none; }
 .dot { border:1.5px solid var(--faint); background:none; } .dot.ok { background:var(--fg); border-color:var(--fg); } .dot.warn { border-color:var(--fg); border-style:dashed; } .dot.bad { border-color:var(--fg); background:repeating-linear-gradient(45deg, var(--fg) 0 2px, transparent 2px 4px); }
-.rail .foot { margin-top:auto; padding:0 8px; font-size:12.5px; }
+.rail .foot { margin-top:auto; padding:0 8px; font-size:12.5px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.lang { border:1px solid var(--line); background:none; border-radius:6px; padding:3px 9px; font:600 12px var(--mono); color:var(--mut); cursor:pointer; }
 
 .top { display:flex; align-items:center; gap:12px; min-height:56px; padding:8px max(24px, env(safe-area-inset-right)) 8px 28px; border-bottom:1px solid var(--line); background:var(--surface); position:sticky; top:0; z-index:5; }
 .top h1 { font-size:17px; margin:0; font-weight:650; }
@@ -92,7 +93,7 @@ details.adv .fields, details.adv > p { margin-top:14px; }
 .item .right { grid-row:1 / span 2; grid-column:2; display:flex; gap:6px; align-items:center; }
 .split { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.2fr); gap:16px; align-items:start; }
 @media (max-width: 880px) { .split { grid-template-columns:minmax(0,1fr); } }
-@media (max-width: 760px) {
+@media (max-width: 760px) { .rail .foot { display:flex !important; margin:0 0 0 auto; } .rail .foot a { display:none; }
   .shell { grid-template-columns:minmax(0,1fr); }
   .rail { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 12px; padding:10px 16px; border-right:0; border-bottom:1px solid var(--line); }
   .brand span, .steps .s, .rail .sep, .sys, .rail .foot { display:none; } .steps { flex-direction:row; flex-wrap:wrap; } .steps a { grid-template-columns:24px auto; gap:6px; padding:6px 8px; } .steps .n { width:22px; height:22px; }
@@ -144,7 +145,7 @@ dialog .df { display:flex; justify-content:flex-end; gap:10px; padding:14px 20px
       <div><i class="dot" id="d-gpu"></i><span id="t-gpu">GPU</span></div>
       <div><i class="dot" id="d-robot"></i><span id="t-robot">Robot</span></div>
     </div>
-    <div class="foot"><a href="#settings">Cài đặt model thầy</a></div>
+    <div class="foot"><a href="#settings">Cài đặt model thầy</a><button class="lang" id="lang" type="button" aria-label="Language">EN</button></div>
   </nav>
 
   <div>
@@ -175,10 +176,12 @@ const STAGE = {prepare:"Kiểm tra dataset", fewshot:"Dạy thầy tác vụ m�
   student:"Train model trò", package:"Đóng gói", record:"Ghi demo", robot:"Robot đang chạy", label_dagger:"Thầy sửa dữ liệu mới", download:"Tải về", prepare_import:"Chuẩn bị dataset",
   select:"Chọn dataset công khai", merge:"Gộp dataset", train:"Train thầy", generate:"Expert làm demo trong sim", convert:"Chuyển sang dataset", isaac:"Chạy trong Isaac Sim"};
 function toast(m) { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 4000); }
-const dur = s => s < 60 ? Math.max(1, Math.round(s)) + " giây" : s < 3600 ? Math.round(s / 60) + " phút" : (s / 3600).toFixed(1).replace(".", ",") + " giờ";
+let LANG = "vi"; try { LANG = localStorage.getItem("nanovla_lang") || "vi"; } catch (e) {}
+const dec = (v, n) => LANG === "en" ? v.toFixed(n) : v.toFixed(n).replace(".", ",");
+const dur = s => s < 60 ? Math.max(1, Math.round(s)) + " giây" : s < 3600 ? Math.round(s / 60) + " phút" : dec(s / 3600, 1) + " giờ";
 const ago = t => { const s = Date.now() / 1000 - t; return s < 90 ? "vừa xong" : s < 3600 ? Math.round(s / 60) + " phút trước" : s < 86400 ? Math.round(s / 3600) + " giờ trước" : Math.round(s / 86400) + " ngày trước"; };
 const nice = n => { const [o, r] = String(n).includes("__") ? String(n).split("__") : ["", n]; return {name:r, owner:o}; };
-const deg = v => v == null ? "–" : v.toFixed(2).replace(".", ",") + "°";
+const deg = v => v == null ? "–" : dec(v, 2) + "°";
 function friendly(err) {
   const e = String(err || "");
   if (/could not open port|\/dev\/tty|SerialException/i.test(e)) return "Không mở được cổng robot. Kiểm tra cáp USB rồi chọn lại cổng.";
@@ -195,7 +198,7 @@ const PAGES = { collect:"Thu thập demo", data:"Chọn dataset", distill:"Disti
 function route() {
   const h = location.hash.slice(1), page = PAGES[h] ? h : (S.ds.length ? "data" : "collect");
   document.querySelectorAll(".steps a").forEach(a => a.dataset.step === page ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
-  $("#title").textContent = PAGES[page]; document.title = PAGES[page] + " · NanoVLA Studio";
+  $("#title").textContent = PAGES[page]; document.title = (LANG === "en" ? trText(PAGES[page]) : PAGES[page]) + " · NanoVLA Studio";
   ({collect:viewCollect, data:viewData, distill:viewDistill, models:viewModels, settings:viewSettings})[page]();
   renderChrome();
 }
@@ -297,7 +300,7 @@ function viewData() {
     try { await post("/api/jobs", {kind:"import", params:{repo_ids:[r], name:r.replace("/", "__")}}); toast("Đang tải " + r); refresh(); openDrawer(); } catch (err) { toast(err.message); } };
   if (S.sel) dsDetail(S.sel).then(d => {
     const ok = d.ready && d.joint_unit === "degrees";
-    $("#ds-detail").innerHTML = `<div class="ph"><div><h2>${esc(nice(d.name).name)}</h2><p>${nice(d.name).owner ? "Hugging Face: " + esc(nice(d.name).owner) + " · " : ""}${d.episodes} demo · ${(d.frames || 0).toLocaleString("vi")} frame · ${d.fps} fps</p></div><span style="margin-left:auto">${dsBadge(d)}</span></div>
+    $("#ds-detail").innerHTML = `<div class="ph"><div><h2>${esc(nice(d.name).name)}</h2><p>${nice(d.name).owner ? "Hugging Face: " + esc(nice(d.name).owner) + " · " : ""}${d.episodes} demo · ${(d.frames || 0).toLocaleString(LANG === "en" ? "en" : "vi")} frame · ${d.fps} fps</p></div><span style="margin-left:auto">${dsBadge(d)}</span></div>
       <div class="pb">
         ${ok ? "" : `<div class="note warn" style="margin-bottom:16px">${d.ready ? "" : "Tên camera chưa đúng chuẩn, sẽ được sửa tự động khi distill. "}${d.joint_unit !== "degrees" ? "Không chắc góc khớp tính bằng độ; model có thể sai đơn vị." : ""}</div>`}
         <ul class="tasks">${Object.entries(d.tasks).map(([t, c]) => `<li><span>${esc(t)}</span><span class="c">${c} demo</span></li>`).join("")}</ul>
@@ -355,7 +358,7 @@ function viewModels() {
         <b>${esc(x.name)}</b><span class="meta">${esc(x.created)} · ${x.tasks.length} câu lệnh${x.dagger_rounds ? " · đã cải thiện " + x.dagger_rounds + " lần" : ""}</span>
         <span class="right"><span class="badge ok num">${deg(x.student?.mae10_arm)}</span></span></button>`).join("") || `<div class="empty"><b>Chưa có model</b><a href="#distill">Distill một dataset</a> để tạo model đầu tiên.</div>`}</div></div>
     <div class="panel">${m ? `
-      <div class="ph"><div><h2>${esc(m.name)}</h2><p>${(m.student?.params_M ?? 13.3).toString().replace(".", ",")} triệu tham số · ${(m.student?.ms_fp16_3060 ?? 0).toFixed(1).replace(".", ",")} ms mỗi lần (RTX 3060)</p></div></div>
+      <div class="ph"><div><h2>${esc(m.name)}</h2><p>${dec(m.student?.params_M ?? 13.3, 2)} triệu tham số · ${dec(m.student?.ms_fp16_3060 ?? 0, 1)} ms mỗi lần (RTX 3060)</p></div></div>
       <div class="pb">
         ${metricRows(m)}
         ${(m.sim || []).length ? `<dl class="kv">${m.sim.slice(-3).reverse().map(r => `<dt>Isaac Sim · ${esc(r.tasks)}</dt><dd><b>${Math.round(r.success_rate * 100)}%</b> thành công (${Math.round(r.success_rate * r.episodes)}/${r.episodes} lần thử) · ${esc(r.when)}</dd>`).join("")}</dl>` : ""}
@@ -503,7 +506,116 @@ async function refresh(full) {
     renderChrome(); renderDrawer();
   } catch (e) { $("#act-t").textContent = "Mất kết nối máy chủ"; }
 }
-refresh(true).then(route);
+
+// ------------------------------------------------------------------ English (exact strings + patterns; applied to every render)
+const EN = {
+"Dạy robot SO-101 tác vụ mới":"Teach a SO-101 robot new tasks", "Thu thập demo":"Collect demos", "Robot thật hoặc Isaac Sim":"Real robot or Isaac Sim",
+"Chọn dataset":"Choose a dataset", "Distill":"Distill", "Tạo model nhỏ":"Build a small model", "Model và chạy robot":"Models and robot", "Cài đặt model thầy":"Teacher model settings",
+"Model thầy":"Teacher model", "Robot":"Robot", "Hoạt động":"Activity", "Đóng":"Close", "Chưa có":"None yet",
+"Model thầy sẵn sàng":"Teacher model ready", "Chưa có model thầy":"No teacher model", "GPU đang bận":"GPU busy", "GPU rảnh":"GPU free",
+"Robot và leader đã cắm":"Robot and leader connected", "Mới cắm 1 thiết bị":"Only 1 device connected", "Chưa cắm robot":"Robot not connected",
+"Robot thật":"Real robot", "Isaac Sim":"Isaac Sim",
+"Điều khiển robot bằng tay leader để làm mẫu tác vụ. Mỗi câu lệnh nên có ít nhất 3 demo, với vị trí vật khác nhau.":"Teleoperate the robot with the leader arm to demonstrate the task. Record at least 3 demos per instruction, with the object in different places.",
+"Tác vụ cần dạy":"Task to teach", "Câu lệnh này cũng là câu sẽ dùng để ra lệnh cho model.":"This instruction is also what you will tell the model later.",
+"Câu lệnh":"Instruction", "Tiếng Anh, ngắn, nói rõ vật và đích.":"Short English sentence naming the object and the goal.",
+"Tên dataset":"Dataset name", "Chữ, số, gạch dưới. Trùng tên thì ghi tiếp.":"Letters, digits, underscores. An existing name is appended to.",
+"Số demo":"Number of demos", "Thiết bị và thời gian":"Devices and timing", "Robot (follower)":"Robot (follower)", "Tay leader":"Leader arm",
+"Camera cổ tay":"Wrist camera", "Camera tổng quan":"Overview camera", "Mỗi demo (giây)":"Per demo (s)", "Nghỉ giữa demo (giây)":"Reset between demos (s)",
+"ID robot":"Robot ID", "Tên file calibration của robot.":"The robot's calibration file name.", "ID tay leader":"Leader ID", "Chưa thấy camera":"No camera found",
+"Bắt đầu ghi":"Start recording", "Giữa các demo có thời gian nghỉ để đặt lại vật.":"Between demos there is time to put the objects back.", "Chưa thấy thiết bị":"No device found",
+"Expert có sẵn trong Isaac Sim tự làm demo: camera cổ tay + camera phía trước, góc khớp đổi sang độ như robot thật. Dùng để thử toàn bộ pipeline và đo tỉ lệ thành công mà không cần robot.":"A scripted expert records demos in Isaac Sim: wrist + front camera, joint angles converted to degrees like the real robot. Use it to test the whole pipeline and measure success rates without a robot.",
+"Demo trong Isaac Sim":"Demos in Isaac Sim", "Vật, vị trí, ánh sáng và vân bàn được ngẫu nhiên hoá mỗi demo.":"Objects, positions, lighting and table texture are randomised in every demo.",
+"Tác vụ":"Task", "Gắp vật lên":"Pick up an object", "Đặt vật lên đĩa / khay / hộp":"Place an object on a pad / tray / container", "Đẩy vật":"Push an object", "Xoay vật":"Rotate an object",
+"75 (khoảng 20 phút)":"75 (about 20 min)", "150 (khoảng 40 phút)":"150 (about 40 min)", "300 (khoảng 80 phút)":"300 (about 80 min)",
+"Ba vật glue stick, spool, toy brick không có trong demo, để thử vật mới.":"Glue stick, spool and toy brick are kept out of the demos to test unseen objects.",
+"Sinh demo":"Generate demos", "GPU đang bận: sẽ chạy khi tới lượt.":"GPU busy: it will run when its turn comes.",
+"Chọn dataset để dạy model. Cần 2 camera (cổ tay và tổng quan) và góc khớp tính bằng độ.":"Choose the dataset to teach. It needs 2 cameras (wrist and overview) and joint angles in degrees.",
+"Dataset":"Dataset", "Chưa có dataset":"No dataset yet", "Ghi demo ở bước 1, hoặc tải dataset công khai bên dưới.":"Record demos in step 1, or download a public dataset below.",
+"Thêm dataset công khai từ Hugging Face":"Add a public dataset from Hugging Face", "Tải về":"Download",
+"Dataset SO-101 định dạng LeRobot v3 có camera cổ tay và camera tổng quan.":"A SO-101 LeRobot v3 dataset with a wrist and an overview camera.",
+"Chọn một dataset":"Choose a dataset", "để xem câu lệnh và bắt đầu distill.":"to see its instructions and start distilling.",
+"Sẵn sàng":"Ready", "Cần kiểm tra":"Check", "Lỗi":"Error", "Distill dataset này":"Distill this dataset",
+"Model thầy (2 camera) học tác vụ từ demo, rồi dạy lại cho model trò nhỏ chỉ dùng camera cổ tay để chạy trên Jetson.":"The teacher model (2 cameras) learns the task from the demos, then teaches a small student that uses only the wrist camera and runs on a Jetson.",
+"Đổi dataset":"Change dataset", "Tên model":"Model name", "Trùng tên với model cũ sẽ ghi đè.":"An existing model with the same name is replaced.",
+"Các bước sẽ chạy":"Steps", "Kiểm tra dataset":"Check dataset", "Dạy thầy":"Teach teacher", "Đánh giá":"Evaluate", "Thầy gán nhãn":"Teacher labels", "Train trò":"Train student", "Đóng gói":"Package",
+"Khoảng 1,5–2 giờ trên RTX 3060. Có thể đóng trang, tác vụ vẫn chạy.":"About 1.5–2 h on an RTX 3060. You can close the page; the job keeps running.",
+"Tuỳ chọn nâng cao":"Advanced options", "Bước dạy thầy":"Teacher steps", "Bước train trò":"Student steps", "Bản biến đổi ảnh mỗi frame":"Augmented copies per frame",
+"Nhiều hơn thì trò bền hơn với ánh sáng nhưng lâu hơn.":"More makes the student more robust to lighting, but slower.", "Bắt đầu distill":"Start distill",
+"GPU đang bận: tác vụ sẽ chờ tới lượt.":"GPU busy: the job will wait for its turn.", "Chưa chọn dataset":"No dataset chosen", "Chọn dataset ở bước 2":"Choose one in step 2",
+"Chưa có model thầy. ":"No teacher model yet. ",
+"Sai số là độ lệch trung bình của 5 khớp tay so với demo kiểm tra trong 0,33 giây tới. Càng thấp càng tốt.":"Error is the mean deviation of the 5 arm joints from held-out demos over the next 0.33 s. Lower is better.",
+"Model":"Model", "Chưa có model":"No model yet", "Distill một dataset":"Distill a dataset", " để tạo model đầu tiên.":" to create the first one.",
+"Trò · cổ tay":"Student · wrist", "Thầy · 2 camera":"Teacher · 2 cameras", "Chạy trên robot":"Run on the robot", "Thử trong Isaac Sim":"Test in Isaac Sim", "Tải model (.zip)":"Download (.zip)",
+"Cải thiện bằng DAgger":"Improve with DAgger",
+"Chạy trên robot với tuỳ chọn \"Ghi lại để cải thiện\", rồi chọn lần ghi đó. Thầy sửa các hành động trò làm sai và trò được train lại.":"Run on the robot with \"Record to improve\", then pick that recording. The teacher corrects the student's mistakes and the student is retrained.",
+"Lần ghi từ robot":"Recording from the robot", "Cải thiện model":"Improve model", "Chưa có lần ghi nào từ robot.":"No recording from the robot yet.",
+"Chi tiết":"Details", "Kẹp (trò / thầy)":"Gripper (student / teacher)", "Cả chuỗi 1,7 giây":"Full 1.7 s chunk", "Chọn một model":"Choose a model",
+"Robot sẽ chuyển động. Giữ tay khỏi vùng làm việc. Mỗi nhịp điều khiển, khớp đổi không quá 8°.":"The robot will move. Keep hands out of the workspace. Joints change by at most 8° per control tick.",
+"Thời gian (giây)":"Duration (s)", "Ghi lại để cải thiện model (cần camera tổng quan)":"Record to improve the model (needs the overview camera)",
+"Chạy thử không robot (chỉ đo tốc độ)":"Dry run without a robot (timing only)", "Huỷ":"Cancel", "Chạy":"Run", "Bắt đầu":"Start",
+"Chưa thấy robot. Có thể chạy thử không robot để kiểm tra model.":"No robot found. You can do a dry run to check the model.",
+"Số lần thử":"Trials", "Chỉ dùng vật model chưa thấy (glue stick, spool, toy brick)":"Only objects the model has not seen (glue stick, spool, toy brick)",
+"Model chỉ dùng camera cổ tay. Mỗi lần thử tối đa 25 giây mô phỏng; 24 lần mất khoảng 15 phút.":"The model uses only the wrist camera. Each trial lasts up to 25 simulated seconds; 24 trials take about 15 min.",
+"Model thầy là SmolVLA dùng 2 camera, đã học từ dữ liệu SO-101 công khai. Mọi lần distill bắt đầu từ model này.":"The teacher is SmolVLA with 2 cameras, trained on public SO-101 data. Every distill starts from it.",
+"Model thầy hiện tại":"Current teacher", "Checkpoint":"Checkpoint", "Train lại model thầy":"Retrain the teacher",
+"Tự chọn dataset SO-101 công khai có góc khớp tính bằng độ, tải về, gộp rồi train. Khoảng 6 giờ, chiếm GPU.":"Picks public SO-101 datasets recorded in degrees, downloads, merges and trains. About 6 h on the GPU.",
+"Tên":"Name", "Số dataset tối đa":"Max datasets", "Số bước train":"Training steps", "Train lại":"Retrain",
+"Model thầy hiện tại vẫn được dùng tới khi bản mới xong.":"The current teacher stays in use until the new one is done.",
+"Chưa có hoạt động":"No activity yet", "Ghi demo, distill và chạy robot sẽ hiện ở đây.":"Recording, distilling and robot runs show up here.",
+"Đang chạy":"Running", "Đang chờ":"Waiting", "Xong":"Done", "Đã dừng":"Stopped", "Dừng":"Stop", "Chạy lại":"Run again", "Xem log":"Show log", "Ẩn log":"Hide log",
+"Xem model":"View model", "Chưa có log.":"No log yet.", "Bấm lần nữa để dừng":"Click again to stop", "vừa xong":"just now", "1 tác vụ gặp lỗi":"1 job failed",
+"Mất kết nối máy chủ":"Server unreachable",
+"Distill":"Distill", "Cải thiện model":"Improve model", "Train model thầy":"Train teacher", "Tải dataset":"Download dataset", "Demo Isaac Sim":"Isaac Sim demos",
+"Dạy thầy tác vụ mới":"Teaching the teacher", "Đánh giá thầy":"Evaluating the teacher", "Chuẩn bị bộ kiểm tra":"Preparing the test set", "Train model trò":"Training the student",
+"Ghi demo":"Recording demos", "Robot đang chạy":"Robot running", "Thầy sửa dữ liệu mới":"Teacher labels the new data", "Chuẩn bị dataset":"Preparing the dataset",
+"Chọn dataset công khai":"Choosing public datasets", "Gộp dataset":"Merging datasets", "Train thầy":"Training the teacher", "Expert làm demo trong sim":"Expert recording in sim",
+"Chuyển sang dataset":"Converting to a dataset", "Chạy trong Isaac Sim":"Running in Isaac Sim", "đang chờ":"waiting",
+"Không mở được cổng robot. Kiểm tra cáp USB rồi chọn lại cổng.":"Could not open the robot port. Check the USB cable and choose the port again.",
+"Không đọc được camera. Kiểm tra số thứ tự camera.":"Could not read the camera. Check the camera index.",
+"GPU hết bộ nhớ. Đợi tác vụ khác xong rồi chạy lại.":"The GPU ran out of memory. Wait for other jobs, then run again.",
+"Dataset cần đúng 2 camera: cổ tay và tổng quan.":"The dataset needs exactly 2 cameras: wrist and overview.",
+"Mỗi câu lệnh cần ít nhất 2 demo (1 demo được giữ lại để kiểm tra).":"Each instruction needs at least 2 demos (1 is held out for testing).",
+"Hugging Face đang giới hạn lượt tải. Thử lại sau vài phút.":"Hugging Face is rate-limiting downloads. Try again in a few minutes.",
+"Bước này gặp lỗi. Xem log để biết chi tiết.":"This step failed. See the log for details.",
+"Đang ghi demo. Theo dõi ở nút Hoạt động.":"Recording demos. Follow it under Activity.", "Đang sinh demo trong Isaac Sim":"Generating demos in Isaac Sim",
+"Đang thử trong Isaac Sim":"Testing in Isaac Sim", "Đang chạy thử":"Dry run started", "Đã chạy lại":"Started again", "Đã dừng":"Stopped", "Đã bắt đầu train thầy":"Teacher training started",
+"Robot và tay leader phải là hai cổng khác nhau.":"Robot and leader arm must be different ports.", "Chưa có robot. Chọn chạy thử, hoặc cắm robot.":"No robot. Choose a dry run, or connect the robot.",
+};
+const ENRX = [
+ [/^(\d+) demo · (\d+) câu lệnh$/, "$1 demos · $2 instructions"], [/(\d+) demo · /g, "$1 demos · "], [/^(\d+) câu lệnh$/, "$1 instructions"],
+ [/ · (\d+) câu lệnh/g, " · $1 instructions"], [/^(\d+) dataset$/, "$1 datasets"], [/^(\d+) model$/, "$1 models"], [/(\d+) demo$/, "$1 demos"],
+ [/^(.*) · đã cải thiện (\d+) lần$/, "$1 · improved $2×"], [/(\d+) phút trước/, "$1 min ago"], [/(\d+) giờ trước/, "$1 h ago"], [/(\d+) ngày trước/, "$1 days ago"],
+ [/ · mất (.+)$/, " · took $1"], [/(\d+(?:\.\d+)?) giây/g, "$1 s"], [/(\d+(?:\.\d+)?) phút/g, "$1 min"], [/(\d+(?:\.\d+)?) giờ/g, "$1 h"],
+ [/ triệu tham số · (.+) ms mỗi lần/, "M parameters · $1 ms per call"], [/^(\d+) demo được giữ lại để kiểm tra$/, "$1 demos held out for testing"],
+ [/^Hugging Face: /, "Hugging Face: "], [/ frame · /g, " frames · "], [/^Chạy (.+) trên robot$/, "Run $1 on the robot"], [/^Thử (.+) trong Isaac Sim$/, "Test $1 in Isaac Sim"],
+ [/^(\d+)% thành công \((\d+)\/(\d+) lần thử\) · (.*)$/, "$1% success ($2/$3 trials) · $4"], [/thành công \((\d+)\/(\d+) lần thử\)/, "success ($1/$2 trials)"],
+ [/^Tìm thấy: /, "Found: "], [/^Cần cắm cả robot và tay leader qua USB \(đang thấy (\d+) thiết bị\)\. Trang tự cập nhật khi cắm\.$/, "Connect both the robot and the leader arm over USB ($1 found). The page updates when you plug them in."],
+ [/ trên thang 0–100/, " on a 0–100 scale"], [/^Đã bắt đầu distill (.+)$/, "Distill started: $1"], [/^Đang tải (.+)$/, "Downloading $1"], [/^Đang cải thiện (.+)$/, "Improving $1"],
+ [/^Tên camera chưa đúng chuẩn, sẽ được sửa tự động khi distill\. /, "Camera names are not standard; they are fixed automatically when distilling. "],
+ [/Không chắc góc khớp tính bằng độ; model có thể sai đơn vị\./, "Joint angles may not be in degrees; the model could use the wrong units."],
+ [/\b1 (demos|instructions|datasets|models)\b/g, (m, w) => "1 " + w.slice(0, -1)],
+];
+function trText(v) {
+  const t = v.trim(); if (!t) return v;
+  if (EN[t] !== undefined) return v.replace(t, EN[t]);
+  let o = t.includes(" · ") ? t.split(" · ").map(seg => { const m = seg.match(/^(.*?)( \(\+\d+\))?$/); return (EN[m[1]] ?? m[1]) + (m[2] || ""); }).join(" · ") : t;
+  for (const [rx, rep] of ENRX) o = o.replace(rx, rep);
+  return o === t ? v : v.replace(t, o);
+}
+function translate(root) {
+  if (LANG !== "en" || !root) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) { if (n.parentElement && /^(SCRIPT|STYLE|PRE)$/.test(n.parentElement.tagName)) continue; const r = trText(n.nodeValue); if (r !== n.nodeValue) n.nodeValue = r; }
+  root.querySelectorAll?.("[placeholder],[aria-label]").forEach(e => { for (const a of ["placeholder", "aria-label"]) if (e.hasAttribute(a)) { const v = e.getAttribute(a), r = trText(v); if (r !== v) e.setAttribute(a, r); } });
+}
+new MutationObserver(ms => { if (LANG !== "en") return; for (const m of ms) m.addedNodes.forEach(nd => nd.nodeType === 1 ? translate(nd) : nd.nodeType === 3 && (nd.nodeValue = trText(nd.nodeValue))); })
+  .observe(document.body, {childList:true, subtree:true});
+function applyLang() {
+  document.documentElement.lang = LANG; $("#lang").textContent = LANG === "en" ? "VI" : "EN";
+  if (LANG === "en") { translate(document.body); document.title = trText(document.title.split(" · ")[0]) + " · NanoVLA Studio"; }
+}
+$("#lang").onclick = () => { LANG = LANG === "en" ? "vi" : "en"; try { localStorage.setItem("nanovla_lang", LANG); } catch (e) {} location.reload(); };
+refresh(true).then(() => { route(); applyLang(); });
 setInterval(refresh, 4000);
 </script>
 </body>

@@ -14,7 +14,7 @@ from PIL import Image
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--ckpt", required=True); ap.add_argument("--port", type=int, default=6100)
     ap.add_argument("--jpeg", type=int, default=90); ap.add_argument("--steps", type=int, default=10, help="flow-matching denoising steps")
-    ap.add_argument("--log", default=""); ap.add_argument("--cams", default="both", choices=("both", "wrist"))
+    ap.add_argument("--log", default=""); ap.add_argument("--cams", default="both", choices=("both", "wrist")); ap.add_argument("--scale", type=float, default=1.0, help="57.29578: sim radians in, degrees model")
     a = ap.parse_args()
     from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
     from lerobot.policies.factory import make_pre_post_processors
@@ -39,14 +39,14 @@ def main():
                         return
                     t0 = time.time()
                     img = torch.stack([torch.from_numpy(jp(w)).permute(2, 0, 1) for w in req["wrist"]]).float() / 255
-                    st = torch.tensor(np.asarray(req["state"], np.float32))
+                    st = torch.tensor(np.asarray(req["state"], np.float32) * a.scale)
                     batch = {cam: img, "observation.state": st, "task": [t.strip() for t in req["text"]]}
                     if "observation.images.camera2" in feats and "front" in req:   # overview camera (2-camera teacher)
                         batch["observation.images.camera2"] = torch.stack([torch.from_numpy(jp(w).copy()).permute(2, 0, 1) for w in req["front"]]).float() / 255
                     with torch.no_grad():
                         pol.reset()
                         b = pre(batch); act = pol.predict_action_chunk(b); act = post(act)
-                    out = act.float().cpu().numpy()
+                    out = act.float().cpu().numpy() / a.scale
                     if a.log:
                         with open(a.log, "a") as fh:
                             fh.write(json.dumps(dict(n=len(out), ms=round(1000 * (time.time() - t0), 1))) + "\n")

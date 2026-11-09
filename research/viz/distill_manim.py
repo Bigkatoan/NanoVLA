@@ -74,7 +74,7 @@ class DistillPipeline(Scene):
         img = ImageMobject(IMG).set_height(1.8).move_to(LEFT * 3.2 + UP * 0.2)
         itag = tag("320×240", 16).next_to(img, DOWN, buff=0.15)
         bb = box(1.3, 3.6, TEA, 0.3).move_to(LEFT * 0.9)
-        btag = tag("22M", 18, TEA).next_to(bb, DOWN, buff=0.15)
+        btag = tag("450M", 18, TEA).next_to(bb, DOWN, buff=0.15)
         hd = heads(1.0).move_to(RIGHT * 1.3)
         servo = box(0.9, 0.9, GREY_B, 0.12).move_to(RIGHT * 3.2)
         sg = VGroup(*[Line(LEFT * 0.3, RIGHT * 0.3, color=GREY_B).shift(UP * 0.12 * k) for k in (-1, 0, 1)]).move_to(servo)
